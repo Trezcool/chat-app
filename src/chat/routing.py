@@ -1,9 +1,7 @@
-from channels.routing import route
+from channels.routing import route_class
 
-from chat.consumers import ws_connect, ws_receive, ws_disconnect
+from chat.consumers import ChatConsumer
 
 channel_routing = [
-    route('websocket.connect', ws_connect),
-    route('websocket.receive', ws_receive),
-    route('websocket.disconnect', ws_disconnect),
+    route_class(ChatConsumer),
 ]
