@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='//fonts.googleapis.com/css?family=Raleway:400,300,600,200' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="{% static 'normalize.css' %}">
+    <link rel="stylesheet" href="{% static 'skeleton.css' %}">
+    <link rel="stylesheet" href="{% static 'chat.css' %}">
+</head>
+<body>
+    <div class="section">
+        <div class="container">
+            <p><small>Logged in as: </small><big><mark>{{ request.user.username }}</mark></big></p>
+            <p><small>To: </small><big><mark><strong>{% if room %}{{ room.name }}{% else %}{{ receiver.username }}{% endif %}</strong></mark></big></p>
+            <form id="chatform">
+                <table>
+                    <tbody id="chat">
+                    {% for message in messages %}
+                        <tr>
+                            <td>{{ message.sender }}</td>
+                            <td>{{ message.message }}</td>
+                            <td>{{ message.formatted_timestamp }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td>Say something:</td>
+                            <td colspan=2>
+                                <input id="message" type="text" placeholder="message">
+                                <button type="submit" id="go">Say it</button>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript" src='{% static "jquery-1.12.1.min.js" %}'></script>
+    <script type="text/javascript" src='{% static "reconnecting-websocket.min.js" %}'></script>
+    <script type="text/javascript" src='{% static "chat.js" %}'></script>
+</body>
+</html>

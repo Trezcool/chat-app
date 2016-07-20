@@ -1,0 +1,41 @@
+
+# Python bytecode
+*.pyc
+*.pyo
+__pycache__
+
+# setuptools-generated
+*.egg-info/
+.eggs/
+
+# Tox working directory
+.tox
+
+# pytest cache directory
+.cache/
+
+# Bower
+src/chat/static/bower_components/
+
+# Vagrant files
+.vagrant/
+
+instance/
+
+# switch to regexp syntax:
+syntax: regexp
+
+^dev/
+^deploy/
+
+^build/
+^dist/
+
+# tests
+^junit.*.xml
+^.tox
+^.coverage
+^coverage.xml
+^htmlcov/
+
+.idea/
