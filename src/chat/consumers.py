@@ -52,7 +52,7 @@ class ChatConsumer(JsonWebsocketConsumer):
 
     def receive(self, content, **kwargs):
         """
-        Saves the message in the DB and echo it back to the group channel.
+        Saves the message in the DB and echo it back to all group's channels.
         """
         if set(content.keys()) != {'message'}:
             log.debug("ws message unexpected format data=%s", content)
@@ -60,8 +60,8 @@ class ChatConsumer(JsonWebsocketConsumer):
         if content:
             content.update({'sender': self.message.user})
             if self.room:  # Group chat
-                m = self.room.messages.create(**content)
+                message = self.room.messages.create(**content)
             else:  # Person-to-person chat
                 content.update({'receiver': self.receiver})
-                m = Message.objects.create(**content)
-            self.group_send(self.connection_groups()[0], m.as_dict())
+                message = Message.objects.create(**content)
+            self.group_send(self.connection_groups()[0], message.as_dict())
