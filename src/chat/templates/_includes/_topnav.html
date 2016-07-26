@@ -1,0 +1,4 @@
+<ul class="nav navbar-nav navbar-right">
+    <li ng-hide="user.authenticated"><a ng-href="/login" class="{% if tab == 'report' %}active{% endif %}" data-toggle="collapse" data-target=".navbar-collapse.in">Log In</a></li>
+    <li ng-hide="!user.authenticated"><a href="" ng-click="doLogout()" data-toggle="collapse" data-target=".navbar-collapse.in">Logout</a></li>
+</ul>

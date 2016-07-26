@@ -1,0 +1,6 @@
+--extra-index-url https://pypi.byteorbit.com/5d63554b-ef12-4139-a6ae-638abd05cec4/
+
+bo-drf ~=0.2.1
+
+# fork of django-admin-tools with CSRF security fixes
+-e git+https://github.com/rohanza/django-admin-tools.git#egg=django-admin-tools

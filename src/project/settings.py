@@ -2,8 +2,12 @@
 
 INSTALLED_APPS = [
     'chat.apps.ChatConfig',
+    'chat.api',
 
     'channels',
+    'rest_framework',
+    'rest_auth',
+    'bo_drf.api_templates',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -24,7 +28,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'project.urls'
+ROOT_URLCONF = 'chat.urls'
 
 TEMPLATES = [
     {
@@ -69,4 +73,12 @@ CHANNEL_LAYERS = {
         'BACKEND': 'asgiref.inmemory.ChannelLayer',
         'ROUTING': 'chat.routing.channel_routing',
     },
+}
+
+
+# django-rest-auth
+REST_SESSION_LOGIN = False
+REST_AUTH_TOKEN_MODEL = 'chat.api.models.Token'
+REST_AUTH_SERIALIZERS = {
+    'TOKEN_SERIALIZER': 'chat.api.serializers.TokenSerializer',
 }

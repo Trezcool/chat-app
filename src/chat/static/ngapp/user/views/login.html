@@ -1,0 +1,51 @@
+<section class="banner bg-login">
+    <div class="container-fluid padding-v">
+        <h1 class="text-center">Please log in</h1>
+        <br>
+        <div class="card w400 center-block">
+            <div class="card-block card-fat">
+                <div class="message-box animate-show" ng-show="vm.defaults.errors.non_field_errors">
+                    <div class="alert alert-danger" role="alert" ng-repeat="err in vm.defaults.errors.non_field_errors">
+                        <i class="fa fa-bolt"></i> {{ err }}
+                    </div>
+                </div>
+                <form>
+                    <fieldset>
+{#                        <div class="form-group" ng-class="{'has-error': vm.defaults.errors.email}">#}
+{#                            <label>Email address *</label>#}
+{#                            <input name="email" type="email" class="form-control input-lg" ng-model="vm.defaults.email" autocomplete="email" autofocus="autofocus">#}
+{#                            <span class="help-block" ng-if="vm.defaults.errors.email">This field is required.</span>#}
+{#                        </div>#}
+                        <div class="form-group" ng-class="{'has-error': vm.defaults.errors.username}">
+                            <label>Username *</label>
+                            <input name="username" type="text" class="form-control input-lg" ng-model="vm.defaults.username" autocomplete="username" autofocus="autofocus">
+                            <span class="help-block" ng-if="vm.defaults.errors.username">This field is required.</span>
+                        </div>
+                        <div class="form-group" ng-class="{'has-error': vm.defaults.errors.password}">
+                            <label>Password *</label>
+                            <input name="password" type="password" class="form-control input-lg" ng-model="vm.defaults.password" enter-submit="vm.doLogin()" autocomplete="password">
+                            <span class="help-block" ng-if="vm.defaults.errors.password">This field is required.</span>
+                        </div>
+                        <div class="text-center">
+                            <p><a ng-href="">forgot your password?</a></p>
+                            <div class="checkbox text-center">
+                                 <label>
+                                    <span class="custom-checkbox-styling">
+                                        <input name="rememberme" type="checkbox" class="checkbox" ng-model="vm.defaults.rememberMe" value="">
+                                        <span class="custom-checkbox">
+                                            <i class="icon-check"></i>
+                                        </span>
+                                    </span>
+                                    <span class="label-text">Remember me</span>
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="middle-buttons">
+                        <button type="submit" ng-click="vm.doLogin()" class="btn btn-primary btn-lg center-block">Log In</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

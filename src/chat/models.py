@@ -3,19 +3,28 @@ from django.db import models
 from model_utils.models import TimeStampedModel
 
 
+class Contact(TimeStampedModel):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='contacts')
+    contact = models.ForeignKey(settings.AUTH_USER_MODEL)  # TODO: owner's contact
+
+    def __str__(self):
+        return '{} (owner: {})'.format(self.contact.__str__(), self.owner.__str__())
+
+
 class Room(TimeStampedModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL)
     name = models.CharField(max_length=15)
     label = models.SlugField(unique=True)
     is_public = models.BooleanField(default=False)
+    contacts = models.ManyToManyField(Contact, related_name='rooms', blank=True)  # TODO: owner's contacts
 
     def __str__(self):
         return self.label
 
 
 class Message(TimeStampedModel):
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sender_messages')
-    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='receiver_messages', blank=True, null=True)
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='messages')
+    receiver = models.ForeignKey(Contact, related_name='messages', blank=True, null=True)  # TODO: sender's contact
     room = models.ForeignKey(Room, related_name='messages', blank=True, null=True)
     message = models.TextField()
 

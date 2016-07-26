@@ -1,0 +1,25 @@
+{
+  "name": "chat",
+  "version": "0.0.0",
+  "dependencies": {
+    "moment": "~2.14.1",
+    "underscore": "~1.8.3",
+    "jquery": "~2.2.4",
+    "font-awesome": "~4.6.3",
+    "angular": "~1.5.8",
+    "angular-resource": "~1.5.8",
+    "angular-route": "~1.5.8",
+    "angular-animate": "~1.5.8",
+    "angular-cookies": "~1.5.8",
+    "angular-bootstrap-show-errors": "https://github.com/dgsmith2/angular-bootstrap-show-errors.git",
+    "angular-bootstrap": "~2.0.0",
+    "ng-file-upload": "~12.0.4",
+    "bootstrap": "~3.3.6",
+    "ng-intl-tel-input": "~1.4.0",
+    "angular-websocket": "~2.0.0",
+    "reconnecting-websocket": "https://github.com/joewalnes/reconnecting-websocket.git"
+  },
+  "resolutions": {
+    "angular": "1.5.8"
+  }
+}
