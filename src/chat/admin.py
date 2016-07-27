@@ -1,6 +1,8 @@
 from django.contrib import admin
 
-from chat.models import Room, Message
+from chat.models import ChatGroup, ChatMessage, FriendRequest, Friend
 
-admin.site.register(Room)
-admin.site.register(Message)
+admin.site.register(FriendRequest)
+admin.site.register(Friend)
+admin.site.register(ChatGroup)
+admin.site.register(ChatMessage)
