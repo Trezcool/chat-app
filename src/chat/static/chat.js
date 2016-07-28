@@ -1,4 +1,4 @@
-function ChatSession(sender) {
+function ChatSession(user) {
     // When we're using HTTPS, use WSS too.
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     var chatsock = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + "/chat" + window.location.pathname);
@@ -6,15 +6,20 @@ function ChatSession(sender) {
     chatsock.onmessage = function(message) {
         var data = JSON.parse(message.data);
         var chat = $("#chat");
-        var ele = $('<tr></tr>');
-        var tdEle = $('<td></td>');
-        var senderEle = data.sender == sender ? tdEle.append($("<mark></mark>").text(data.sender)) : tdEle.text(data.sender);
 
-        ele.append(senderEle);
-        ele.append($("<td></td>").text(data.message));
-        ele.append($("<td></td>").text(data.timestamp));
-        
-        chat.append(ele)
+        var cardEle;
+        if (data.sender == user) {
+            cardEle = $("<div class='card clearfix pull-right user-message'></div>")
+        } else {
+            cardEle = $("<div class='card clearfix'></div>")
+        }
+        var cardBlockEle = $("<div class='card-block'></div>");
+        var messageEle = $("<p class='card-text'></p>").text(data.message);
+        var timestampEle = $("<p class='card-text'></p>").append($("<small class='text-muted'></small>").text(data.timestamp));
+
+        cardBlockEle.append(messageEle).append(timestampEle);
+        cardEle.append(cardBlockEle);
+        chat.append(cardEle)
     };
 
     $("#chatform").on("submit", function(event) {

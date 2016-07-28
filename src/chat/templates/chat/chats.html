@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}Chats | {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+    <style type="text/css">
+        .link-spanner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+    </style>
+{% endblock extra_head %}
+
+{% block topnav %}
+    {% include "includes/_topnav.html" with tab='chats' %}
+{% endblock topnav %}
+
+{% block content %}
+    <div class="container center">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title">Chats</h3></div>
+
+            <div style="padding: 1em">
+            {% for message in latest_messages %}
+                <div class="media" style="position: relative">
+                    <div class="media-left">
+                        {% if message.group %}  <!-- TODO: use group image -->
+                            <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
+                        {% elif message.sender_id != request.user.pk %}  <!-- TODO: use sender image -->
+                            <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
+                        {% else %}  <!-- TODO: use receiver image -->
+                            <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
+                        {% endif %}
+                    </div>
+                    <div class="media-body">
+                        <div class="media-heading">
+                            {% if message.group %}
+                                <h4 style="margin-bottom: 0">{{ message.group.name }}<small class="pull-right">{{ message.created|date }}</small></h4>
+                                {{ message.sender|title }}:
+                            {% elif message.sender_id != request.user.pk %}
+                                <h4>{{ message.sender|title }}<small class="pull-right">{{ message.created|date }}</small></h4>
+                            {% else %}
+                                <h4>{{ message.receiver|title }}<small class="pull-right">{{ message.created|date }}</small></h4>
+                            {% endif %}
+                        </div>
+                        <span class="text-muted">{{ message.message }}</span>
+                    </div>
+                    {% if message.group %}
+                        <a href="{% url 'group_chat' message.group.label %}"><span class="link-spanner"></span></a>
+                    {% elif message.sender_id != request.user.pk %}
+                        <a href="{% url 'p2p_chat' message.sender_id %}"><span class="link-spanner"></span></a>
+                    {% else %}
+                        <a href="{% url 'p2p_chat' message.receiver_id %}"><span class="link-spanner"></span></a>
+                    {% endif %}
+                </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
