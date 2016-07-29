@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
-{% block title %}Contacts | {{ block.super }}{% endblock %}
+{% block title %}Favorites | {{ block.super }}{% endblock %}
 
 {% block topnav %}
-    {% include "includes/_topnav.html" with tab='contacts' %}
+    {% include "includes/_topnav.html" with tab='fav' %}
 {% endblock topnav %}
 
 {% block content %}
     <div class="container center">
         <div class="panel panel-default">
-            <div class="panel-heading"><h3 class="panel-title">Contacts</h3></div>
+            <div class="panel-heading"><h3 class="panel-title">Favorites</h3></div>
 
             <div style="padding: 1em">
             {% for contact in object_list %}
@@ -25,7 +25,7 @@
                     </div>
                     <div class="media-right">
                         <a href="{% url 'p2p_chat' contact.friend_id %}"><span><i class="fa fa-comments-o"></i></span> </a>
-                        <a href="{% url 'toggle_fav' contact.pk %}?redirect_to=contacts"><span><i class="fa {% if contact.is_favorite %} fa-star {% else %} fa-star-o {% endif %}"></i></span> </a>
+                        <a href="{% url 'toggle_fav' contact.pk %}?redirect_to=fav"><span><i class="fa {% if contact.is_favorite %} fa-star {% else %} fa-star-o {% endif %}"></i></span> </a>
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
             {% endfor %}

@@ -15,10 +15,14 @@ class FriendRequest(TimeStampedModel):  # TODO: Create 2 `Friend` instances upon
 class Friend(TimeStampedModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friends')
     friend = models.ForeignKey(settings.AUTH_USER_MODEL)
+    is_favorite = models.BooleanField(default=False)
 
     class Manager(models.Manager):
         def is_friend(self, owner, friend):
             return self.filter(owner=owner, friend=friend).exists()
+
+        def favorites(self):  # TODO: via a known `owner`.
+            return self.filter(is_favorite=True)
 
     objects = Manager()
 

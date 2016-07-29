@@ -103,11 +103,18 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
 
 
 class ContactListView(generic.ListView, LoginRequiredMixin):
-    model = User
+    model = Friend
     template_name = 'chat/contacts.html'
 
     def get_queryset(self):
-        return [u.friend for u in self.request.user.friends.all().select_related('friend')]
+        return self.request.user.friends.all().select_related('friend')
+
+
+class FavoriteListView(ContactListView):
+    template_name = 'chat/favorites.html'
+
+    def get_queryset(self):
+        return self.request.user.friends.favorites().select_related('friend')
 
 
 class GroupListView(generic.ListView, LoginRequiredMixin):
@@ -120,9 +127,20 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
         return ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to)).distinct()
 
 
+def toggle_favorite(request, pk):
+    """
+    Toggles the friend's `is_favorite` field.
+    """
+    friend = get_object_or_404(Friend, pk=pk)
+    friend.is_favorite = not friend.is_favorite
+    friend.save()
+    return redirect(request.GET['redirect_to'])
+
+
 home = HomeView.as_view()
 chat_list = ChatListView.as_view()
 p2p_chat = P2pChatView.as_view()
 group_chat = GroupChatView.as_view()
 contact_list = ContactListView.as_view()
+favorite_list = FavoriteListView.as_view()
 group_list = GroupListView.as_view()
