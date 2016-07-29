@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}{{ group.name }} | {{ block.super }}{% endblock %}
+
+{% block extra_head %}
+    <style type="text/css">
+        .card {
+            position: relative;
+            display: block;
+            max-width: 40%;
+            margin-top: .75rem;
+            background-color: #fff;
+            border-radius: 1rem;
+            border: 1px solid rgba(0,0,0,.125);
+        }
+        .card-block {
+            padding: .75rem .75rem 0 .75rem;
+        }
+        .card-title {
+            margin-bottom: .25rem;
+        }
+        .user-message {
+            background-color: rgba(61, 164, 199, 0.36);
+            overflow: auto !important;
+        }
+        .clearfix {
+            clear: both;
+        }
+    </style>
+
+    <!-- Chat session script -->
+    <script type="text/javascript">
+        $(function() { new ChatSession('{{ request.user.username }}') })
+    </script>
+{% endblock extra_head %}
+
+{% block topnav %}
+    {% include "includes/_topnav.html" with tab='chats' %}
+{% endblock topnav %}
+
+{% block content %}
+    <div class="container center">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="media">
+                    <div class="media-body">
+                        <div class="media-heading"><h3 class="panel-title">{{ group.name }}</h3></div>
+                    </div>
+                    <div class="media-right">
+                        <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 1em">
+                <form id="chatform">
+                    <div id="chat">
+                    {% for message in chat_messages %}
+                        <div class="card clearfix {% if message.sender_id == request.user.pk %}pull-right user-message {% endif %}">
+                            <div class="card-block">
+                                {% if message.sender_id != request.user.pk %}
+                                    <p class="card-title" style="color: #308430"><b>{{ message.sender|title }}</b></p>
+                                {% endif %}
+                                <p class="card-text">{{ message.message }}</p>
+                                <p class="card-text"><small class="text-muted">{{ message.formatted_timestamp }}</small></p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+
+                    <div class="row clearfix">
+                        <div class="col-lg-12"><br>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="message" placeholder="Type...">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="submit" id="go">Say it!</button>
+                                </span>
+                            </div><!-- /input-group -->
+                        </div><!-- /.col-lg-6 -->
+                    </div><!-- /.row -->
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

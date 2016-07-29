@@ -61,23 +61,14 @@ class ChatConsumer(JsonWebsocketConsumer):
             if user.pk == self.receiver.pk:
                 log.debug("ws receiver (id=%s) is the same as sender", self.label)
                 return
-            if not Friend.objects.filter(owner=user, friend=self.receiver).exists():
+            if not Friend.objects.is_friend(owner=user, friend=self.receiver):
                 log.debug("ws sender (id=%s) is not a friend to receiver (id=%s)", user.pk, self.label)
                 return
         else:  # Group chat
-            is_member = False
-            if user.pk == self.group.owner_id:
-                is_member = True
-            else:
-                friend_ids = Friend.objects.filter(friend=user).values_list('id', flat=True)
-                group_friend_ids = self.group.friends.all().values_list('id', flat=True)
-                for friend_id in friend_ids:
-                    if friend_id in group_friend_ids:
-                        is_member = True
-                        break
-            if not is_member:
-                log.debug("ws sender (id=%s) do not belong to group (label=%s)", user.pk, self.label)
-                return
+            if not user.pk == self.group.owner_id:
+                if not ChatGroup.objects.is_member(group_id=self.group.pk, user=user):
+                    log.debug("ws sender (id=%s) do not belong to group (label=%s)", user.pk, self.label)
+                    return
         super().raw_connect(message, **kwargs)
 
     def receive(self, content, **kwargs):

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
-{% block title %}{% if group %}{{ group.name }}{% else %}{{ receiver|title }}{% endif %} | {{ block.super }}{% endblock %}
+{% block title %}{{ receiver|title }} | {{ block.super }}{% endblock %}
 
 {% block extra_head %}
     <style type="text/css">
@@ -14,19 +14,19 @@
             border-radius: 1rem;
             border: 1px solid rgba(0,0,0,.125);
         }
-    .card-block {
-        padding: .75rem .75rem 0 .75rem;
-    }
-    .card-title {
-        margin-bottom: .25rem;
-    }
-    .user-message {
-        background-color: rgba(61, 164, 199, 0.36);
-        overflow: auto !important;
-    }
-    .clearfix {
-        clear: both;
-    }
+        .card-block {
+            padding: .75rem .75rem 0 .75rem;
+        }
+        .card-title {
+            margin-bottom: .25rem;
+        }
+        .user-message {
+            background-color: rgba(61, 164, 199, 0.36);
+            overflow: auto !important;
+        }
+        .clearfix {
+            clear: both;
+        }
     </style>
 
     <!-- Chat session script -->
@@ -45,16 +45,10 @@
             <div class="panel-heading">
                 <div class="media">
                     <div class="media-body">
-                        <div class="media-heading">
-                            <h3 class="panel-title">{% if group %}{{ group.name }}{% else %}{{ receiver|title }}{% endif %}</h3>
-                        </div>
+                        <div class="media-heading"><h3 class="panel-title">{{ receiver|title }}</h3></div>
                     </div>
                     <div class="media-right">
-                        {% if message.group %}  <!-- TODO: use group image -->
-                            <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
-                        {% else %}  <!-- TODO: use receiver image -->
-                            <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 48px; height: 48px;">
-                        {% endif %}
+                        <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 48px; height: 48px;">
                     </div>
                 </div>
             </div>
@@ -65,11 +59,8 @@
                     {% for message in chat_messages %}
                         <div class="card clearfix {% if message.sender_id == request.user.pk %}pull-right user-message {% endif %}">
                             <div class="card-block">
-                                {% if group and message.sender_id != request.user.pk %}
-                                    <p class="card-title" style="color: #308430"><b>{{ message.sender|title }}</b></p>
-                                {% endif %}
-                                <p class="card-text">{{ message.message }}</p>
-                                <p class="card-text"><small class="text-muted">{{ message.formatted_timestamp }}</small></p>
+                                <p>{{ message.message }}</p>
+                                <p><small class="text-muted">{{ message.formatted_timestamp }}</small></p>
                             </div>
                         </div>
                     {% endfor %}
@@ -83,7 +74,7 @@
                                     <button class="btn btn-default" type="submit" id="go">Say it!</button>
                                 </span>
                             </div><!-- /input-group -->
-                        </div><!-- /.col-lg-6 -->
+                        </div><!-- /.col-lg-12 -->
                     </div><!-- /.row -->
                 </form>
             </div>

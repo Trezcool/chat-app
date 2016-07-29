@@ -26,7 +26,7 @@
             <div class="panel-heading"><h3 class="panel-title">Chats</h3></div>
 
             <div style="padding: 1em">
-            {% for message in latest_messages %}
+            {% for message in object_list %}
                 <div class="media" style="position: relative">
                     <div class="media-left">
                         {% if message.group %}  <!-- TODO: use group image -->
@@ -48,7 +48,7 @@
                                 <h4>{{ message.receiver|title }}<small class="pull-right">{{ message.created|date }}</small></h4>
                             {% endif %}
                         </div>
-                        <span class="text-muted">{{ message.message }}</span>
+                        <span class="text-muted">{{ message.message|truncatechars:70 }}</span>
                     </div>
                     {% if message.group %}
                         <a href="{% url 'group_chat' message.group.label %}"><span class="link-spanner"></span></a>

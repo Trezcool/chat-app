@@ -16,6 +16,12 @@ class Friend(TimeStampedModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friends')
     friend = models.ForeignKey(settings.AUTH_USER_MODEL)
 
+    class Manager(models.Manager):
+        def is_friend(self, owner, friend):
+            return self.filter(owner=owner, friend=friend).exists()
+
+    objects = Manager()
+
     def __str__(self):
         return '{} (owner: {})'.format(self.friend.__str__(), self.owner.__str__())
 
@@ -26,6 +32,13 @@ class ChatGroup(TimeStampedModel):
     label = models.SlugField(unique=True)
     is_public = models.BooleanField(default=False)
     friends = models.ManyToManyField(Friend, related_name='chat_groups', blank=True)  # TODO: owner's friends
+
+    class Manager(models.Manager):
+        def is_member(self, group_id, user):
+            friend_ids = Friend.objects.filter(friend=user).values_list('id', flat=True)
+            return self.filter(pk=group_id, friends__in=friend_ids).exists()
+
+    objects = Manager()
 
     def __str__(self):
         return self.label

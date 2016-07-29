@@ -19,11 +19,11 @@ class HomeView(generic.TemplateView):
         return super().get(request, *args, **kwargs)
 
 
-class ChatListView(generic.TemplateView):
+class ChatListView(generic.ListView):
+    model = ChatMessage
     template_name = 'chat/chats.html'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get_queryset(self):
         user = self.request.user
         friend_to = Friend.objects.filter(friend=user).values_list('id', flat=True)
         groups = ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to)).distinct().values_list('id', flat=True)
@@ -41,48 +41,59 @@ class ChatListView(generic.TemplateView):
         except ChatMessage.DoesNotExist:
             pass
         latest_messages = reversed(sorted(latest_messages, key=attrgetter('created')))
-        context['latest_messages'] = latest_messages
-        return context
+        return latest_messages
 
 
-class ChatSessionView(generic.TemplateView):
-    template_name = 'chat/chat_session.html'
+class P2pChatView(generic.DetailView):
+    model = User
+    context_object_name = 'receiver'
+    template_name = 'chat/p2p_chat.html'
+
+    def get_object(self, queryset=None):
+        user = self.request.user
+        pk = self.kwargs.get(self.pk_url_kwarg)
+        if pk == str(user.pk):
+            raise Http404('You cannot message yourself.')
+        receiver = get_object_or_404(User, pk=pk)
+        # Check that the `receiver` is a friend to the session's user.
+        if not Friend.objects.is_friend(owner=user, friend=receiver):
+            raise Http404('You have no relationship with this user.')
+        return receiver
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        group = receiver = chat_messages = None
-        label = kwargs.get('label')
-        pk = kwargs.get('pk')
-        user = self.request.user
-        if label:
-            group = get_object_or_404(ChatGroup, label=label)
-            # Check that the session's user is a member of this group.
-            is_member = False
-            if user.pk == group.owner_id:
-                is_member = True
-            else:
-                friend_ids = Friend.objects.filter(friend=user).values_list('id', flat=True)
-                group_friend_ids = group.friends.all().values_list('id', flat=True)
-                for friend_id in friend_ids:
-                    if friend_id in group_friend_ids:
-                        is_member = True
-                        break
-            if not is_member:
-                raise Http404('You do not belong to this group.')
-            chat_messages = reversed(group.messages.order_by('-created')[:50])
-        elif pk:
-            if pk == str(user.pk):
-                raise Http404('You cannot message yourself.')
-            receiver = get_object_or_404(User, pk=pk)
-            # Check that the `receiver` is a friend to the session's user.
-            if not Friend.objects.filter(owner=user, friend=receiver).exists():
-                raise Http404('You have no relationship with this user.')
-            p2p_list = [user.pk, receiver.pk]
-            chat_messages = reversed(ChatMessage.objects.filter(sender_id__in=p2p_list,
-                                                                receiver_id__in=p2p_list).order_by('-created')[:50])
+        p2p_list = [self.request.user.pk, self.get_object().pk]
+        msg_count = kwargs.get('msg_count', 0) + 10
+        chat_messages = reversed(ChatMessage.objects.filter(sender_id__in=p2p_list,
+                                                            receiver_id__in=p2p_list).order_by('-created')[:msg_count])
         context.update({
-            'group': group,
-            'receiver': receiver,
+            'msg_count': msg_count,
+            'chat_messages': chat_messages,
+        })
+        return context
+
+
+class GroupChatView(generic.DetailView):
+    model = ChatGroup
+    context_object_name = 'group'
+    template_name = 'chat/group_chat.html'
+
+    def get_object(self, queryset=None):
+        user = self.request.user
+        label = self.kwargs.get(self.slug_url_kwarg)
+        group = get_object_or_404(ChatGroup, label=label)
+        # Check that the session's user is either the owner or a member of this group.
+        if not user.pk == group.owner_id:
+            if not ChatGroup.objects.is_member(group_id=group.pk, user=user):
+                raise Http404('You do not belong to this group.')
+        return group
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        msg_count = kwargs.get('msg_count', 0) + 10
+        chat_messages = reversed(self.get_object().messages.order_by('-created')[:msg_count])
+        context.update({
+            'msg_count': msg_count,
             'chat_messages': chat_messages,
         })
         return context
@@ -90,4 +101,5 @@ class ChatSessionView(generic.TemplateView):
 
 home = HomeView.as_view()
 chat_list = ChatListView.as_view()
-chat_session = ChatSessionView.as_view()
+p2p_chat = P2pChatView.as_view()
+group_chat = GroupChatView.as_view()
