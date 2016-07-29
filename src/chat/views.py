@@ -27,14 +27,16 @@ class ChatListView(generic.ListView, LoginRequiredMixin):
     def get_queryset(self):
         user = self.request.user
         friend_to = Friend.objects.filter(friend=user).values_list('id', flat=True)
-        groups = ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to)).distinct().values_list('id', flat=True)
+        groups = (ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to))
+                                   .distinct().values_list('id', flat=True))
         chat_messages = ChatMessage.objects.filter(Q(sender=user) | Q(receiver=user) | Q(group_id__in=groups))
         friends = Friend.objects.filter(owner=user).values_list('friend_id', flat=True)
         latest_messages = ChatMessage.objects.none()
         try:
             for friend in friends:
-                latest_message = list([chat_messages.filter(Q(sender_id=friend, group__isnull=True) |
-                                                            Q(receiver_id=friend, group__isnull=True)).latest('created')])
+                latest_message = list([(chat_messages.filter(Q(sender_id=friend, group__isnull=True) |
+                                                             Q(receiver_id=friend, group__isnull=True))
+                                                     .latest('created'))])
                 latest_messages = list(chain(latest_messages, latest_message))
             for group in groups:
                 latest_message = list([chat_messages.filter(group_id=group).latest('created')])
@@ -108,8 +110,19 @@ class ContactListView(generic.ListView, LoginRequiredMixin):
         return [u.friend for u in self.request.user.friends.all().select_related('friend')]
 
 
+class GroupListView(generic.ListView, LoginRequiredMixin):
+    model = ChatGroup
+    template_name = 'chat/groups.html'
+
+    def get_queryset(self):
+        user = self.request.user
+        friend_to = Friend.objects.filter(friend=user).values_list('id', flat=True)
+        return ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to)).distinct()
+
+
 home = HomeView.as_view()
 chat_list = ChatListView.as_view()
 p2p_chat = P2pChatView.as_view()
 group_chat = GroupChatView.as_view()
 contact_list = ContactListView.as_view()
+group_list = GroupListView.as_view()

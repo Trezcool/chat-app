@@ -7,7 +7,7 @@
     {% if user.is_authenticated %}
         <li class="{% if tab == 'chats' %}active{% endif %}"><a href="{% url 'chats' %}">Chats</a></li>
         <li class="{% if tab == 'contacts' %}active{% endif %}"><a href="{% url 'contacts' %}">Contacts</a></li>
-        <li class="{% if tab == 'groups' %}active{% endif %}"><a href="#">Groups</a></li>
+        <li class="{% if tab == 'groups' %}active{% endif %}"><a href="{% url 'groups' %}">Groups</a></li>
         <li class="{% if tab == 'favorites' %}active{% endif %}"><a href="#">Favorites</a></li>
     {% else %}
 {#        <li class="mobile-only {% if tab == 'home' %}active{% endif %}"><a href="/">coolChat Home</a></li>#}
