@@ -5,8 +5,8 @@
 
 <ul class="nav navbar-nav">
     {% if user.is_authenticated %}
-        <li class="{% if tab == 'chats' %}active{% endif %}"><a href="{% url 'chats' %}">Chats <span class="sr-only">(current)</span></a></li>
-        <li class="{% if tab == 'contacts' %}active{% endif %}"><a href="#">Contacts</a></li>
+        <li class="{% if tab == 'chats' %}active{% endif %}"><a href="{% url 'chats' %}">Chats</a></li>
+        <li class="{% if tab == 'contacts' %}active{% endif %}"><a href="{% url 'contacts' %}">Contacts</a></li>
         <li class="{% if tab == 'groups' %}active{% endif %}"><a href="#">Groups</a></li>
         <li class="{% if tab == 'favorites' %}active{% endif %}"><a href="#">Favorites</a></li>
     {% else %}

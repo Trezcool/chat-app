@@ -100,7 +100,16 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
         return context
 
 
+class ContactListView(generic.ListView, LoginRequiredMixin):
+    model = User
+    template_name = 'chat/contacts.html'
+
+    def get_queryset(self):
+        return [u.friend for u in self.request.user.friends.all().select_related('friend')]
+
+
 home = HomeView.as_view()
 chat_list = ChatListView.as_view()
 p2p_chat = P2pChatView.as_view()
 group_chat = GroupChatView.as_view()
+contact_list = ContactListView.as_view()

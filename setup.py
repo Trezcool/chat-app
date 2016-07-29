@@ -4,9 +4,9 @@ from setuptools import setup, find_packages
 setup(
     name='chat',
     description='Chat app',
-    author='Byte Orbit',
-    author_email='info@byteorbit.com',
-    url='http://byteorbit.com/',
+    author='Tresor Kambembo',
+    author_email='kambembotresor@gmail.com',
+    url='http://www.trezcool.com/',
     install_requires=[
         'Django ~=1.9.0',
         'django-model-utils ~=2.5.0',
