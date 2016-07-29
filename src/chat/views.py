@@ -1,6 +1,7 @@
 from itertools import chain
 from operator import attrgetter
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.http import Http404
@@ -10,7 +11,7 @@ from django.views import generic
 from chat.models import ChatGroup, ChatMessage, Friend
 
 
-class HomeView(generic.TemplateView):
+class HomeView(generic.TemplateView, LoginRequiredMixin):
     template_name = 'chat/home.html'
 
     def get(self, request, *args, **kwargs):
@@ -19,7 +20,7 @@ class HomeView(generic.TemplateView):
         return super().get(request, *args, **kwargs)
 
 
-class ChatListView(generic.ListView):
+class ChatListView(generic.ListView, LoginRequiredMixin):
     model = ChatMessage
     template_name = 'chat/chats.html'
 
@@ -44,7 +45,7 @@ class ChatListView(generic.ListView):
         return latest_messages
 
 
-class P2pChatView(generic.DetailView):
+class P2pChatView(generic.DetailView, LoginRequiredMixin):
     model = User
     context_object_name = 'receiver'
     template_name = 'chat/p2p_chat.html'
@@ -62,8 +63,8 @@ class P2pChatView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        p2p_list = [self.request.user.pk, self.get_object().pk]
-        msg_count = kwargs.get('msg_count', 0) + 10
+        p2p_list = [self.request.user.pk, self.object.pk]
+        msg_count = kwargs.get('msg_count', 0) + 10  # TODO: Implement `Loading of more messages`
         chat_messages = reversed(ChatMessage.objects.filter(sender_id__in=p2p_list,
                                                             receiver_id__in=p2p_list).order_by('-created')[:msg_count])
         context.update({
@@ -73,7 +74,7 @@ class P2pChatView(generic.DetailView):
         return context
 
 
-class GroupChatView(generic.DetailView):
+class GroupChatView(generic.DetailView, LoginRequiredMixin):
     model = ChatGroup
     context_object_name = 'group'
     template_name = 'chat/group_chat.html'
@@ -90,8 +91,8 @@ class GroupChatView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        msg_count = kwargs.get('msg_count', 0) + 10
-        chat_messages = reversed(self.get_object().messages.order_by('-created')[:msg_count])
+        msg_count = kwargs.get('msg_count', 0) + 10  # TODO: Implement `Loading of more messages`
+        chat_messages = reversed(self.object.messages.order_by('-created')[:msg_count])
         context.update({
             'msg_count': msg_count,
             'chat_messages': chat_messages,

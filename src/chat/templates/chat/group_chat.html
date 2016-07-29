@@ -4,31 +4,6 @@
 {% block title %}{{ group.name }} | {{ block.super }}{% endblock %}
 
 {% block extra_head %}
-    <style type="text/css">
-        .card {
-            position: relative;
-            display: block;
-            max-width: 40%;
-            margin-top: .75rem;
-            background-color: #fff;
-            border-radius: 1rem;
-            border: 1px solid rgba(0,0,0,.125);
-        }
-        .card-block {
-            padding: .75rem .75rem 0 .75rem;
-        }
-        .card-title {
-            margin-bottom: .25rem;
-        }
-        .user-message {
-            background-color: rgba(61, 164, 199, 0.36);
-            overflow: auto !important;
-        }
-        .clearfix {
-            clear: both;
-        }
-    </style>
-
     <!-- Chat session script -->
     <script type="text/javascript">
         $(function() { new ChatSession('{{ request.user.username }}') })
