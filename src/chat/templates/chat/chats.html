@@ -45,6 +45,8 @@
                         <a href="{% url 'p2p_chat' message.receiver_id %}"><span class="link-spanner"></span></a>
                     {% endif %}
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
+            {% empty %}
+                No chats.
             {% endfor %}
             </div>
         </div>

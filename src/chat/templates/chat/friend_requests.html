@@ -1,34 +1,34 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
-{% block title %}Groups | {{ block.super }}{% endblock %}
+{% block title %}Friend Requests | {{ block.super }}{% endblock %}
 
 {% block topnav %}
-    {% include "includes/_topnav.html" with tab='groups' %}
+    {% include "includes/_topnav.html" with tab='friend_requests' %}
 {% endblock topnav %}
 
 {% block content %}
     <div class="container center">
         <div class="panel panel-default">
-            <div class="panel-heading"><h3 class="panel-title">Groups</h3></div>
+            <div class="panel-heading"><h3 class="panel-title">Friend Requests</h3></div>
 
             <div style="padding: 1em">
-            {% for group in object_list %}
+            {% for friend_request in object_list %}
                 <div class="media" style="position: relative">
                     <div class="media-left">
                         <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
                     </div>
                     <div class="media-body">
                         <div class="media-heading">
-                            <h4 style="margin-bottom: 0">{{ group.name }}</h4>
+                            <h4 style="margin-bottom: 0">{{ friend_request.sender.get_full_name }}</h4>
                         </div>
                     </div>
                     <div class="media-right">
-                        <a href="{% url 'group_chat' group.label %}"><span><i class="fa fa-comments-o"></i></span> </a>
+                        <a href="{% url 'accept_request' friend_request.pk %}"><span><i class="fa fa-plus"></i></span> </a>
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
             {% empty %}
-                No groups.
+                No friend requests.
             {% endfor %}
             </div>
         </div>

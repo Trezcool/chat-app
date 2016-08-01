@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load chat_tags %}
+
+{% block title %}Potential Friends | {{ block.super }}{% endblock %}
+
+{% block topnav %}
+    {% include "includes/_topnav.html" with tab='potential_friends' %}
+{% endblock topnav %}
+
+{% block content %}
+    <div class="container center">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h3 class="panel-title">Friends you might know...</h3></div>
+
+            <div style="padding: 1em">
+            {% for user in object_list %}
+                {% is_request_pending user as is_pending %}
+                <div class="media" style="position: relative">
+                    <div class="media-left">
+                        <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
+                    </div>
+                    <div class="media-body">
+                        <div class="media-heading">
+                            <h4 style="margin-bottom: 0">{{ user.get_full_name }}</h4>
+                        </div>
+                        {% if is_pending %}<p class="text-muted">Pending request...</p>{% endif %}
+                    </div>
+                    <div class="media-right">
+                        {% if is_pending %}
+                            <a href="{% url 'undo_request' user.pk %}"><span><i class="fa fa-remove"></i></span> </a>
+                        {% else %}
+                            <a href="{% url 'send_request' user.pk %}"><span><i class="fa fa-user-plus"></i></span> </a>
+                        {% endif %}
+                    </div>
+                </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
+            {% empty %}
+                No potential friends.
+            {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

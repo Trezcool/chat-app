@@ -46,3 +46,6 @@ p.deck a {
 .clearfix {
     clear: both;
 }
+.fav {
+    color: rgb(238, 176, 8);
+}

@@ -1,6 +1,5 @@
 from django.conf.urls import url
 from django.contrib import admin
-from django.contrib.auth.decorators import login_required
 
 from chat import views
 
@@ -13,5 +12,10 @@ urlpatterns = [
     url(r'^contacts/$', views.contact_list, name='contacts'),
     url(r'^fav/$', views.favorite_list, name='fav'),
     url(r'^groups/$', views.group_list, name='groups'),
-    url(r'^toggle-fav/(?P<pk>[\w-]{,50})/$', login_required(views.toggle_favorite), name='toggle_fav'),
+    url(r'^toggle-fav/(?P<pk>[\w-]{,50})/$', views.toggle_favorite, name='toggle_fav'),
+    url(r'^potential-friends/$', views.potential_friend_list, name='potential_friends'),
+    url(r'^send-request/(?P<pk>[\w-]{,50})/$', views.send_friend_request, name='send_request'),
+    url(r'^undo-request/(?P<pk>[\w-]{,50})/$', views.undo_friend_request, name='undo_request'),
+    url(r'^friend-requests/$', views.friend_request_list, name='friend_requests'),
+    url(r'^accept-request/(?P<pk>[\w-]{,50})/$', views.accept_friend_request, name='accept_request'),
 ]

@@ -1,14 +1,16 @@
 from itertools import chain
 from operator import attrgetter
 
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.db.transaction import atomic
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.views import generic
 
-from chat.models import ChatGroup, ChatMessage, Friend
+from chat.models import ChatGroup, ChatMessage, Friend, FriendRequest
 
 
 class HomeView(generic.TemplateView, LoginRequiredMixin):
@@ -30,7 +32,7 @@ class ChatListView(generic.ListView, LoginRequiredMixin):
         groups = (ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to))
                                    .distinct().values_list('id', flat=True))
         chat_messages = ChatMessage.objects.filter(Q(sender=user) | Q(receiver=user) | Q(group_id__in=groups))
-        friends = Friend.objects.filter(owner=user).values_list('friend_id', flat=True)
+        friends = user.friends.all().values_list('friend_id', flat=True)
         latest_messages = ChatMessage.objects.none()
         try:
             for friend in friends:
@@ -127,14 +129,83 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
         return ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to)).distinct()
 
 
+class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
+    model = User
+    template_name = 'chat/find_friends.html'
+
+    def get_queryset(self):
+        user = self.request.user
+        friends = user.friends.all().values_list('friend_id', flat=True)
+        return User.objects.exclude(Q(pk=user.pk) | Q(friends__in=friends))
+
+
+class FriendRequestListView(generic.ListView, LoginRequiredMixin):
+    model = FriendRequest
+    template_name = 'chat/friend_requests.html'
+
+    def get_queryset(self):
+        return self.request.user.receiver_requests.unapproved()
+
+
+@login_required
 def toggle_favorite(request, pk):
     """
     Toggles the friend's `is_favorite` field.
     """
     friend = get_object_or_404(Friend, pk=pk)
+    if friend.owner != request.user:
+        raise Http404('You have no relationship with this user.')
     friend.is_favorite = not friend.is_favorite
     friend.save()
     return redirect(request.GET['redirect_to'])
+
+
+@login_required
+def send_friend_request(request, pk):
+    """
+    Sends a friend request to a potential friend.
+    """
+    potential_friend = get_object_or_404(User, pk=pk)
+    user = request.user
+    if potential_friend == user or user.friends.filter(friend=potential_friend).exists():
+        raise Http404('User already exists in your friend list.')
+    FriendRequest.objects.create(sender=user, receiver=potential_friend)
+    return redirect('potential_friends')
+
+
+@login_required
+def undo_friend_request(request, pk):
+    """
+    Cancels a friend request made to a potential friend.
+    """
+    potential_friend = get_object_or_404(User, pk=pk)
+    user = request.user
+    if potential_friend == user or user.friends.filter(friend=potential_friend).exists():
+        raise Http404('User already exists in your friend list.')
+    try:
+        FriendRequest.objects.get(sender=user, receiver=potential_friend).delete()
+    except FriendRequest.DoesNotExist:
+        pass  # TODO: Raise ??
+    return redirect('potential_friends')
+
+
+@login_required
+def accept_friend_request(request, pk):
+    """
+    Accepts a friend request made by a potential friend.
+    """
+    friend_req = get_object_or_404(FriendRequest, pk=pk)
+    sender = friend_req.sender
+    user = request.user
+    if sender == user or user.friends.filter(friend=sender).exists():
+        raise Http404('User already exists in your friend list.')
+    with atomic():
+        friend_req.is_approved = True
+        friend_req.save()
+        # Add each user to the other's friend list.
+        Friend.objects.create(owner=user, friend=sender)
+        Friend.objects.create(owner=sender, friend=user)
+    return redirect('friend_requests')
 
 
 home = HomeView.as_view()
@@ -144,3 +215,5 @@ group_chat = GroupChatView.as_view()
 contact_list = ContactListView.as_view()
 favorite_list = FavoriteListView.as_view()
 group_list = GroupListView.as_view()
+potential_friend_list = PotentialFriendListView.as_view()
+friend_request_list = FriendRequestListView.as_view()

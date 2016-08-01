@@ -6,9 +6,11 @@
 <ul class="nav navbar-nav">
     {% if user.is_authenticated %}
         <li class="{% if tab == 'chats' %}active{% endif %}"><a href="{% url 'chats' %}">Chats</a></li>
+        <li class="{% if tab == 'fav' %}active{% endif %}"><a href="{% url 'fav' %}">Favorites</a></li>
         <li class="{% if tab == 'contacts' %}active{% endif %}"><a href="{% url 'contacts' %}">Contacts</a></li>
         <li class="{% if tab == 'groups' %}active{% endif %}"><a href="{% url 'groups' %}">Groups</a></li>
-        <li class="{% if tab == 'fav' %}active{% endif %}"><a href="{% url 'fav' %}">Favorites</a></li>
+        <li class="{% if tab == 'friend_requests' %}active{% endif %}"><a href="{% url 'friend_requests' %}">Friend Requests</a></li>
+        <li class="{% if tab == 'potential_friends' %}active{% endif %}"><a href="{% url 'potential_friends' %}">Find Friends</a></li>
     {% else %}
 {#        <li class="mobile-only {% if tab == 'home' %}active{% endif %}"><a href="/">coolChat Home</a></li>#}
 {#        <li class="mobile-only {% if tab == 'login' %}active{% endif %}"><a href="{% url 'login' %}">Login</a></li>#}
