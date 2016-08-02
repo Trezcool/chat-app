@@ -19,7 +19,7 @@ class ChatConsumer(JsonWebsocketConsumer):
         try:
             # Expected path formats: `/chat/p2p/:id/` or `/chat/group/:label/`
             prefix, chat_type, label = message['path'].strip('/').split('/')
-            if prefix != 'chat' or chat_type not in ['p2p', 'group']:
+            if prefix != 'chats' or chat_type not in ['p2p', 'group']:
                 log.debug('invalid ws path=%s', message['path'])
                 return
             if chat_type == 'p2p':  # Peer-to-peer chat: check that a receiver with this ID exists.
@@ -65,7 +65,7 @@ class ChatConsumer(JsonWebsocketConsumer):
                 log.debug("ws sender (id=%s) is not a friend to receiver (id=%s)", user.pk, self.label)
                 return
         else:  # Group chat
-            if not user.pk == self.group.admin_id:
+            if user != self.group.admin:
                 if not Membership.objects.is_member(self.group, user):
                     log.debug("ws sender (id=%s) do not belong to group (label=%s)", user.pk, self.label)
                     return

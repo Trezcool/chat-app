@@ -57,7 +57,7 @@ class Membership(TimeStampedModel):
     class Manager(models.Manager):
         def is_member(self, group, user):
             friend_ids = user.friend_to.all().values_list('id', flat=True)
-            return self.filter(group=group, friend__in=friend_ids).exists()
+            return self.filter(group=group, member__in=friend_ids).exists()
 
     objects = Manager()
 

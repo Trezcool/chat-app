@@ -21,11 +21,13 @@
                     <div class="media-body">
                         <div class="media-heading">
                             <h4 style="margin-bottom: 0">{{ group.name }}</h4>
+                            <span class="text-muted">admin: {% if group.admin == request.user %}You{% else %}{{ group.admin|title }}{% endif %}</span>
                         </div>
                     </div>
                     <div class="media-right">
                         <a href="{% url 'group_chat' group.label %}"><span><i class="fa fa-comments-o"></i></span> </a>
                         <a href="{% url 'group_members' group.label %}"><span><i class="fa fa-group"></i></span> </a>
+                        <a href="{% url 'leave_group' group.label %}" title="Leave"><span><i class="fa fa-remove"></i></span> </a>
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
             {% empty %}

@@ -91,7 +91,7 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
         label = self.kwargs.get(self.slug_url_kwarg)
         group = get_object_or_404(ChatGroup, label=label)
         # Check that the session's user is either the admin or a member of this group.
-        if not user.pk == group.admin_id:
+        if user != group.admin:
             if not Membership.objects.is_member(group, user):
                 raise Http404('You do not belong to this group.')
         return group
@@ -222,6 +222,30 @@ def accept_friend_request(request, pk):
         Friend.objects.create(owner=user, friend=sender)
         Friend.objects.create(owner=sender, friend=user)
     return redirect('friend_requests')
+
+
+@login_required
+def leave_group(request, slug):
+    """
+    Leaves a group.
+    """
+    user = request.user
+    group = get_object_or_404(ChatGroup, label=slug)
+    if user == group.admin:
+        try:
+            next_admin = Membership.objects.exclude(group=group, member__friend=user).earliest('created').member.friend
+            group.admin = next_admin
+            group.save()
+        except Membership.DoesNotExist:  # There's no members but the admin, therefore delete group.
+            group.delete()
+            return redirect('groups')
+    elif not Membership.objects.is_member(group, user):  # Check that user is a member of this group.
+        raise Http404('You do not belong to this group.')
+    try:
+        Membership.objects.get(group=group, member__friend=user).delete()
+    except Membership.DoesNotExist:  # user was original admin & not a member.
+        pass
+    return redirect('groups')
 
 
 home = HomeView.as_view()
