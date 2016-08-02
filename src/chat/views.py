@@ -135,8 +135,9 @@ class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
 
     def get_queryset(self):
         user = self.request.user
-        friends = user.friends.all().values_list('friend_id', flat=True)
-        return User.objects.exclude(Q(pk=user.pk) | Q(friends__in=friends))
+        friends = list(user.friends.all().values_list('friend_id', flat=True))
+        friends.append(user.pk)
+        return User.objects.exclude(pk__in=friends)
 
 
 class FriendRequestListView(generic.ListView, LoginRequiredMixin):
