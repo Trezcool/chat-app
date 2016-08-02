@@ -22,13 +22,13 @@ class FriendRequest(TimeStampedModel):  # TODO: Create 2 `Friend` instances upon
 
 
 class Friend(TimeStampedModel):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friends')
-    friend = models.ForeignKey(settings.AUTH_USER_MODEL)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friends')  # owner's friend list.
+    friend = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friend_to')  # others' friend lists.
     is_favorite = models.BooleanField(default=False)
 
     class Manager(models.Manager):
-        def is_friend(self, owner, friend):
-            return self.filter(owner=owner, friend=friend).exists()
+        def is_friend(self, friend):
+            return self.filter(friend=friend).exists()
 
         def favorites(self):  # TODO: via a known `owner`.
             return self.filter(is_favorite=True)
@@ -40,18 +40,11 @@ class Friend(TimeStampedModel):
 
 
 class ChatGroup(TimeStampedModel):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='chat_groups')
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='chat_groups')
     name = models.CharField(max_length=15)
     label = models.SlugField(unique=True)
     is_public = models.BooleanField(default=False)
     friends = models.ManyToManyField(Friend, through='Membership', related_name='chat_groups', blank=True)  # TODO: owner's friends
-
-    class Manager(models.Manager):
-        def is_member(self, group_id, user):
-            friend_ids = Friend.objects.filter(friend=user).values_list('id', flat=True)
-            return self.filter(pk=group_id, friends__in=friend_ids).exists()
-
-    objects = Manager()
 
     def __str__(self):
         return self.label
@@ -60,6 +53,16 @@ class ChatGroup(TimeStampedModel):
 class Membership(TimeStampedModel):
     friend = models.ForeignKey(Friend)
     group = models.ForeignKey(ChatGroup)
+
+    class Manager(models.Manager):
+        def is_member(self, group, user):
+            friend_ids = user.friend_to.all().values_list('id', flat=True)
+            return self.filter(group=group, friend__in=friend_ids).exists()
+
+    objects = Manager()
+
+    def __str__(self):
+        return '{} member of {}'.format(self.friend.__str__(), self.group.__str__())
 
 
 class ChatMessage(TimeStampedModel):

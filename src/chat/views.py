@@ -10,7 +10,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.views import generic
 
-from chat.models import ChatGroup, ChatMessage, Friend, FriendRequest
+from chat.models import ChatGroup, ChatMessage, Friend, FriendRequest, Membership
 
 
 class HomeView(generic.TemplateView, LoginRequiredMixin):
@@ -28,8 +28,8 @@ class ChatListView(generic.ListView, LoginRequiredMixin):
 
     def get_queryset(self):
         user = self.request.user
-        friend_to = Friend.objects.filter(friend=user).values_list('id', flat=True)
-        groups = (ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to))
+        friend_to = user.friend_to.all().values_list('id', flat=True)
+        groups = (ChatGroup.objects.filter(Q(admin=user) | Q(friends__in=friend_to))
                                    .distinct().values_list('id', flat=True))
         chat_messages = ChatMessage.objects.filter(Q(sender=user) | Q(receiver=user) | Q(group_id__in=groups))
         friends = user.friends.all().values_list('friend_id', flat=True)
@@ -61,7 +61,7 @@ class P2pChatView(generic.DetailView, LoginRequiredMixin):
             raise Http404('You cannot message yourself.')
         receiver = get_object_or_404(User, pk=pk)
         # Check that the `receiver` is a friend to the session's user.
-        if not Friend.objects.is_friend(owner=user, friend=receiver):
+        if not user.friends.is_friend(receiver):
             raise Http404('You have no relationship with this user.')
         return receiver
 
@@ -87,9 +87,9 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
         user = self.request.user
         label = self.kwargs.get(self.slug_url_kwarg)
         group = get_object_or_404(ChatGroup, label=label)
-        # Check that the session's user is either the owner or a member of this group.
-        if not user.pk == group.owner_id:
-            if not ChatGroup.objects.is_member(group_id=group.pk, user=user):
+        # Check that the session's user is either the admin or a member of this group.
+        if not user.pk == group.admin_id:
+            if not Membership.objects.is_member(group, user):
                 raise Http404('You do not belong to this group.')
         return group
 
@@ -125,8 +125,8 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
 
     def get_queryset(self):
         user = self.request.user
-        friend_to = Friend.objects.filter(friend=user).values_list('id', flat=True)
-        return ChatGroup.objects.filter(Q(owner=user) | Q(friends__in=friend_to)).distinct()
+        friend_to = user.friend_to.all().values_list('id', flat=True)
+        return ChatGroup.objects.filter(Q(admin=user) | Q(friends__in=friend_to)).distinct()
 
 
 class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
@@ -168,7 +168,7 @@ def send_friend_request(request, pk):
     """
     potential_friend = get_object_or_404(User, pk=pk)
     user = request.user
-    if potential_friend == user or user.friends.filter(friend=potential_friend).exists():
+    if potential_friend == user or user.friends.is_friend(potential_friend):
         raise Http404('User already exists in your friend list.')
     FriendRequest.objects.create(sender=user, receiver=potential_friend)
     return redirect('potential_friends')
@@ -181,7 +181,7 @@ def undo_friend_request(request, pk):
     """
     potential_friend = get_object_or_404(User, pk=pk)
     user = request.user
-    if potential_friend == user or user.friends.filter(friend=potential_friend).exists():
+    if potential_friend == user or user.friends.is_friend(potential_friend):
         raise Http404('User already exists in your friend list.')
     try:
         FriendRequest.objects.get(sender=user, receiver=potential_friend).delete()
@@ -198,7 +198,7 @@ def accept_friend_request(request, pk):
     friend_req = get_object_or_404(FriendRequest, pk=pk)
     sender = friend_req.sender
     user = request.user
-    if sender == user or user.friends.filter(friend=sender).exists():
+    if sender == user or user.friends.is_friend(sender):
         raise Http404('User already exists in your friend list.')
     with atomic():
         friend_req.is_approved = True

@@ -2,7 +2,7 @@ import logging
 from django.contrib.auth.models import User
 from channels.generic.websockets import JsonWebsocketConsumer
 
-from chat.models import ChatGroup, ChatMessage, Friend
+from chat.models import ChatGroup, ChatMessage, Membership
 
 log = logging.getLogger(__name__)
 
@@ -61,12 +61,12 @@ class ChatConsumer(JsonWebsocketConsumer):
             if user.pk == self.receiver.pk:
                 log.debug("ws receiver (id=%s) is the same as sender", self.label)
                 return
-            if not Friend.objects.is_friend(owner=user, friend=self.receiver):
+            if not user.friends.is_friend(self.receiver):
                 log.debug("ws sender (id=%s) is not a friend to receiver (id=%s)", user.pk, self.label)
                 return
         else:  # Group chat
-            if not user.pk == self.group.owner_id:
-                if not ChatGroup.objects.is_member(group_id=self.group.pk, user=user):
+            if not user.pk == self.group.admin_id:
+                if not Membership.objects.is_member(self.group, user):
                     log.debug("ws sender (id=%s) do not belong to group (label=%s)", user.pk, self.label)
                     return
         super().raw_connect(message, **kwargs)

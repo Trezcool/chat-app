@@ -6,7 +6,7 @@
 {% block extra_head %}
     <!-- Chat session script -->
     <script type="text/javascript">
-        $(function() { new ChatSession('{{ request.user.username }}') })
+        $(function() { new ChatSession('{{ request.user.username }}', true) })
     </script>
 {% endblock extra_head %}
 
@@ -37,8 +37,8 @@
                                 {% if message.sender_id != request.user.pk %}
                                     <p class="card-title" style="color: #308430"><b>{{ message.sender|title }}</b></p>
                                 {% endif %}
-                                <p class="card-text">{{ message.message }}</p>
-                                <p class="card-text"><small class="text-muted">{{ message.formatted_timestamp }}</small></p>
+                                <p>{{ message.message }}</p>
+                                <p><small class="text-muted">{{ message.formatted_timestamp }}</small></p>
                             </div>
                         </div>
                     {% endfor %}

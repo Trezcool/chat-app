@@ -1,4 +1,4 @@
-function ChatSession(user) {
+function ChatSession(user, isGroupChat) {
     // When we're using HTTPS, use WSS too.
     var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     var chatsock = new ReconnectingWebSocket(ws_scheme + '://' + window.location.host + "/chat" + window.location.pathname);
@@ -14,9 +14,13 @@ function ChatSession(user) {
             cardEle = $("<div class='card clearfix'></div>")
         }
         var cardBlockEle = $("<div class='card-block'></div>");
-        var messageEle = $("<p class='card-text'></p>").text(data.message);
-        var timestampEle = $("<p class='card-text'></p>").append($("<small class='text-muted'></small>").text(data.timestamp));
-
+        var messageEle = $("<p></p>").text(data.message);
+        var timestampEle = $("<p></p>").append($("<small class='text-muted'></small>").text(data.timestamp));
+        if (isGroupChat && data.sender != user) {
+            var senderEle = $("<p class='card-title' style='color: #308430'></p>")
+                .append($("<b></b>").text(s.titleize(data.sender)));
+            cardBlockEle.append(senderEle);
+        }
         cardBlockEle.append(messageEle).append(timestampEle);
         cardEle.append(cardBlockEle);
         chat.append(cardEle)
