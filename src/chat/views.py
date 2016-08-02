@@ -34,17 +34,20 @@ class ChatListView(generic.ListView, LoginRequiredMixin):
         chat_messages = ChatMessage.objects.filter(Q(sender=user) | Q(receiver=user) | Q(group_id__in=groups))
         friends = user.friends.all().values_list('friend_id', flat=True)
         latest_messages = ChatMessage.objects.none()
-        try:
-            for friend in friends:
+        for friend in friends:
+            try:
                 latest_message = list([(chat_messages.filter(Q(sender_id=friend, group__isnull=True) |
                                                              Q(receiver_id=friend, group__isnull=True))
                                                      .latest('created'))])
                 latest_messages = list(chain(latest_messages, latest_message))
-            for group in groups:
+            except ChatMessage.DoesNotExist:
+                pass
+        for group in groups:
+            try:
                 latest_message = list([chat_messages.filter(group_id=group).latest('created')])
                 latest_messages = list(chain(latest_messages, latest_message))
-        except ChatMessage.DoesNotExist:
-            pass
+            except ChatMessage.DoesNotExist:
+                pass
         latest_messages = reversed(sorted(latest_messages, key=attrgetter('created')))
         return latest_messages
 
