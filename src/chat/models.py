@@ -44,14 +44,14 @@ class ChatGroup(TimeStampedModel):
     name = models.CharField(max_length=15)
     label = models.SlugField(unique=True)
     is_public = models.BooleanField(default=False)
-    friends = models.ManyToManyField(Friend, through='Membership', related_name='chat_groups', blank=True)  # TODO: owner's friends
+    members = models.ManyToManyField(Friend, through='Membership', related_name='chat_groups', blank=True)  # TODO: owner's friends
 
     def __str__(self):
         return self.label
 
 
 class Membership(TimeStampedModel):
-    friend = models.ForeignKey(Friend)
+    member = models.ForeignKey(Friend)
     group = models.ForeignKey(ChatGroup)
 
     class Manager(models.Manager):
@@ -62,7 +62,7 @@ class Membership(TimeStampedModel):
     objects = Manager()
 
     def __str__(self):
-        return '{} member of {}'.format(self.friend.__str__(), self.group.__str__())
+        return '{} member of {}'.format(self.member.__str__(), self.group.__str__())
 
 
 class ChatMessage(TimeStampedModel):

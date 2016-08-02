@@ -29,10 +29,10 @@ class ChatListView(generic.ListView, LoginRequiredMixin):
     def get_queryset(self):
         user = self.request.user
         friend_to = user.friend_to.all().values_list('id', flat=True)
-        groups = (ChatGroup.objects.filter(Q(admin=user) | Q(friends__in=friend_to))
+        groups = (ChatGroup.objects.filter(Q(admin=user) | Q(members__in=friend_to))
                                    .distinct().values_list('id', flat=True))
         chat_messages = ChatMessage.objects.filter(Q(sender=user) | Q(receiver=user) | Q(group_id__in=groups))
-        friends = user.friends.all().values_list('friend_id', flat=True)
+        friends = user.friends.all().values_list('friend', flat=True)
         latest_messages = ChatMessage.objects.none()
         for friend in friends:
             try:
@@ -129,7 +129,19 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
     def get_queryset(self):
         user = self.request.user
         friend_to = user.friend_to.all().values_list('id', flat=True)
-        return ChatGroup.objects.filter(Q(admin=user) | Q(friends__in=friend_to)).distinct()
+        return ChatGroup.objects.filter(Q(admin=user) | Q(members__in=friend_to)).distinct()
+
+
+class GroupMemberListView(GroupChatView):
+    template_name = 'chat/group_members.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        members_ids = list(self.object.members.all().values_list('friend', flat=True))
+        members_ids.append(self.object.admin_id)
+        members = User.objects.filter(pk__in=members_ids)
+        context['members'] = members
+        return context
 
 
 class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
@@ -138,7 +150,7 @@ class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
 
     def get_queryset(self):
         user = self.request.user
-        friends = list(user.friends.all().values_list('friend_id', flat=True))
+        friends = list(user.friends.all().values_list('friend', flat=True))
         friends.append(user.pk)
         return User.objects.exclude(pk__in=friends)
 
@@ -219,5 +231,6 @@ group_chat = GroupChatView.as_view()
 contact_list = ContactListView.as_view()
 favorite_list = FavoriteListView.as_view()
 group_list = GroupListView.as_view()
+group_member_list = GroupMemberListView.as_view()
 potential_friend_list = PotentialFriendListView.as_view()
 friend_request_list = FriendRequestListView.as_view()

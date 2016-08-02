@@ -28,7 +28,7 @@
                         <div class="media-heading">
                             {% if message.group %}
                                 <h4 style="margin-bottom: 0">{{ message.group.name }}<small class="pull-right">{{ message.created|date }}</small></h4>
-                                {% if message.sender == request.user %}Me{% else %}{{ message.sender|title }}{% endif %}:
+                                {% if message.sender == request.user %}You{% else %}{{ message.sender|title }}{% endif %}:
                             {% elif message.sender_id != request.user.pk %}
                                 <h4>{{ message.sender|title }}<small class="pull-right">{{ message.created|date }}</small></h4>
                             {% else %}

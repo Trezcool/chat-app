@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^contacts/$', views.contact_list, name='contacts'),
     url(r'^fav/$', views.favorite_list, name='fav'),
     url(r'^groups/$', views.group_list, name='groups'),
+    url(r'^group/(?P<slug>[\w-]{,50})/members/$', views.group_member_list, name='group_members'),
     url(r'^toggle-fav/(?P<pk>[\w-]{,50})/$', views.toggle_favorite, name='toggle_fav'),
     url(r'^potential-friends/$', views.potential_friend_list, name='potential_friends'),
     url(r'^send-request/(?P<pk>[\w-]{,50})/$', views.send_friend_request, name='send_request'),
