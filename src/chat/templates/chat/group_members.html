@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load chat_tags %}
 
 {% block title %}{{ group.name }} Members | {{ block.super }}{% endblock %}
 
@@ -14,19 +15,35 @@
 
             <div style="padding: 1em">
             {% for member in members %}
+                {% if member != request.user and not member.pk in common_friends_ids %}{% is_request_pending member as is_pending %}{% endif %}
                 <div class="media" style="position: relative">
                     <div class="media-left">
                         <img class="media-object" src="{% static 'img/anon.png' %}" alt="" style="width: 64px; height: 64px;">
                     </div>
                     <div class="media-body">
                         <div class="media-heading">
-                            <h4 style="margin-bottom: 0">{% if member == request.user %}You{% else %}{{ member|title }}{% endif %}</h4>
+                            <h4 style="margin-bottom: 0">
+                                {% if member == request.user %}
+                                    You
+                                {% elif member.pk in common_friends_ids %}
+                                    {{ member|title }}
+                                {% else %}
+                                    {{ member.get_full_name }}
+                                {% endif %}
+                            </h4>
                             {% if member == group.admin %}<span class="text-danger">admin</span>{% endif %}
+                            {% if is_pending %}<p class="text-muted">Pending request...</p>{% endif %}
                         </div>
                     </div>
                     <div class="media-right">
-                        {% if member != request.user %}
+                        {% if member.pk in common_friends_ids %}
                             <a href="{% url 'p2p_chat' member.pk %}"><span><i class="fa fa-comments-o"></i></span> </a>
+                        {% elif member != request.user %}
+                            {% if is_pending %}
+                                <a href="{% url 'undo_request' member.pk %}?redirect_to=group_members&pk={{ group.label }}"><span><i class="fa fa-remove"></i></span> </a>
+                            {% else %}
+                                <a href="{% url 'send_request' member.pk %}?redirect_to=group_members&pk={{ group.label }}"><span><i class="fa fa-user-plus"></i></span> </a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}

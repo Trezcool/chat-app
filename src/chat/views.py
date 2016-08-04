@@ -140,7 +140,12 @@ class GroupMemberListView(GroupChatView):
         members_ids = list(self.object.members.all().values_list('friend', flat=True))
         members_ids.append(self.object.admin_id)
         members = User.objects.filter(pk__in=members_ids)
-        context['members'] = members
+        user_friends_ids = self.request.user.friends.all().values_list('friend', flat=True)
+        common_friends_ids = self.object.members.filter(friend_id__in=user_friends_ids).values_list('friend', flat=True)
+        context.update({
+            'members': members,
+            'common_friends_ids': common_friends_ids,
+        })
         return context
 
 
@@ -160,7 +165,7 @@ class FriendRequestListView(generic.ListView, LoginRequiredMixin):
     template_name = 'chat/friend_requests.html'
 
     def get_queryset(self):
-        return self.request.user.receiver_requests.unapproved()
+        return self.request.user.receiver_requests.unapproved().select_related('sender')
 
 
 @login_required
@@ -186,7 +191,9 @@ def send_friend_request(request, pk):
     if potential_friend == user or user.friends.is_friend(potential_friend):
         raise Http404('User already exists in your friend list.')
     FriendRequest.objects.create(sender=user, receiver=potential_friend)
-    return redirect('potential_friends')
+    redirect_to = request.GET['redirect_to']
+    redirect_pk = request.GET.get('pk')
+    return redirect(redirect_to, redirect_pk) if redirect_pk else redirect(redirect_to)
 
 
 @login_required
@@ -202,7 +209,9 @@ def undo_friend_request(request, pk):
         FriendRequest.objects.get(sender=user, receiver=potential_friend).delete()
     except FriendRequest.DoesNotExist:
         pass  # TODO: Raise ??
-    return redirect('potential_friends')
+    redirect_to = request.GET['redirect_to']
+    redirect_pk = request.GET.get('pk')
+    return redirect(redirect_to, redirect_pk) if redirect_pk else redirect(redirect_to)
 
 
 @login_required

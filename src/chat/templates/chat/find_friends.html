@@ -28,9 +28,9 @@
                     </div>
                     <div class="media-right">
                         {% if is_pending %}
-                            <a href="{% url 'undo_request' user.pk %}"><span><i class="fa fa-remove"></i></span> </a>
+                            <a href="{% url 'undo_request' user.pk %}?redirect_to=potential_friends"><span><i class="fa fa-remove"></i></span> </a>
                         {% else %}
-                            <a href="{% url 'send_request' user.pk %}"><span><i class="fa fa-user-plus"></i></span> </a>
+                            <a href="{% url 'send_request' user.pk %}?redirect_to=potential_friends"><span><i class="fa fa-user-plus"></i></span> </a>
                         {% endif %}
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}

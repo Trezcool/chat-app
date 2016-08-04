@@ -10,7 +10,7 @@ class FriendRequest(TimeStampedModel):  # TODO: Create 2 `Friend` instances upon
 
     class Manager(models.Manager):
         def unapproved(self):
-            return self.filter(is_approved=False).select_related('sender', 'receiver')
+            return self.filter(is_approved=False)
 
         def is_pending(self, receiver):
             return self.unapproved().filter(receiver=receiver).exists()
@@ -44,7 +44,7 @@ class ChatGroup(TimeStampedModel):
     name = models.CharField(max_length=15)
     label = models.SlugField(unique=True)
     is_public = models.BooleanField(default=False)
-    members = models.ManyToManyField(Friend, through='Membership', related_name='chat_groups', blank=True)  # TODO: owner's friends
+    members = models.ManyToManyField(Friend, through='Membership', related_name='groups', blank=True)  # TODO: owner's friends
 
     def __str__(self):
         return self.label
