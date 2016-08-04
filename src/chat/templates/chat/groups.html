@@ -27,6 +27,9 @@
                     <div class="media-right">
                         <a href="{% url 'group_chat' group.label %}"><span><i class="fa fa-comments-o"></i></span> </a>
                         <a href="{% url 'group_members' group.label %}"><span><i class="fa fa-group"></i></span> </a>
+                        {% if request.user == group.admin %}
+                            <a href="{% url 'delete_group' group.label %}" title="Delete"><span><i class="fa fa-remove text-danger"></i></span> </a>
+                        {% endif %}
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
             {% empty %}

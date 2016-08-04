@@ -25,6 +25,7 @@ urlpatterns = [
     url(r'^groups/create/$', views.group_create, name='create_group'),
     url(r'^groups/(?P<slug>[\w-]{,50})/members/$', views.group_member_list, name='group_members'),
     url(r'^groups/(?P<slug>[\w-]{,50})/leave/$', views.leave_group, name='leave_group'),
+    url(r'^groups/(?P<slug>[\w-]{,50})/delete/$', views.group_delete, name='delete_group'),
 
     # Friend requests.
     url(r'^friend-requests/$', views.friend_request_list, name='friend_requests'),

@@ -174,6 +174,11 @@ class GroupMemberListView(GroupChatView):
         return context
 
 
+class GroupDeleteView(GroupChatView, generic.edit.DeleteView):
+    template_name = 'chat/group_confirm_delete.html'
+    success_url = reverse_lazy('groups')
+
+
 class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
     model = User
     template_name = 'chat/find_friends.html'
@@ -306,5 +311,6 @@ favorite_list = FavoriteListView.as_view()
 group_list = GroupListView.as_view()
 group_create = GroupCreateView.as_view()
 group_member_list = GroupMemberListView.as_view()
+group_delete = GroupDeleteView.as_view()
 potential_friend_list = PotentialFriendListView.as_view()
 friend_request_list = FriendRequestListView.as_view()
