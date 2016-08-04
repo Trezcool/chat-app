@@ -3,7 +3,7 @@
 Dependencies
 ============
 
-The project requires Python 3.4+ and Django 1.9+
+The project requires Python 3.4+ and Django 1.10+
 
 The database backend is assumed to be PostgreSQL or SQLite.
 

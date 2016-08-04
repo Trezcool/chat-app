@@ -8,7 +8,7 @@ setup(
     author_email='kambembotresor@gmail.com',
     url='http://www.trezcool.com/',
     install_requires=[
-        'Django ~=1.9.0',
+        'Django ~=1.10.0',
         'django-model-utils ~=2.5.0',
         'channels',
     ],

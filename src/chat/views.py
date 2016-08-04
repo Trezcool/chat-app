@@ -17,7 +17,7 @@ class HomeView(generic.TemplateView, LoginRequiredMixin):
     template_name = 'chat/home.html'
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             return redirect('chats')
         return super().get(request, *args, **kwargs)
 
