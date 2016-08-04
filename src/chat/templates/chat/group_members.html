@@ -40,7 +40,7 @@
                             <a href="{% url 'p2p_chat' member.pk %}"><span><i class="fa fa-comments-o"></i></span> </a>
                         {% elif member != request.user %}
                             {% if is_pending %}
-                                <a href="{% url 'undo_request' member.pk %}?redirect_to=group_members&pk={{ group.label }}"><span><i class="fa fa-remove"></i></span> </a>
+                                <a href="{% url 'undo_request' member.pk %}?redirect_to=group_members&pk={{ group.label }}"><span><i class="fa fa-remove text-danger"></i></span> </a>
                             {% else %}
                                 <a href="{% url 'send_request' member.pk %}?redirect_to=group_members&pk={{ group.label }}"><span><i class="fa fa-user-plus"></i></span> </a>
                             {% endif %}

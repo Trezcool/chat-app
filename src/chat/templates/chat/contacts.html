@@ -26,6 +26,7 @@
                     <div class="media-right">
                         <a href="{% url 'p2p_chat' contact.friend_id %}"><span><i class="fa fa-comments-o"></i></span> </a>
                         <a href="{% url 'toggle_fav' contact.pk %}?redirect_to=contacts"><span><i class="fa {% if contact.is_favorite %} fa-star {% else %} fa-star-o {% endif %} fav"></i></span> </a>
+                        <a href="{% url 'unfriend' contact.pk %}"><span><i class="fa fa-remove text-danger"></i></span> </a>
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
             {% empty %}

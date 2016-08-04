@@ -14,6 +14,7 @@ urlpatterns = [
 
     # Contacts
     url(r'^contacts/$', views.contact_list, name='contacts'),
+    url(r'^contacts/(?P<pk>[\w-]{,50})/unfriend/$', views.unfriend_friend, name='unfriend'),
 
     # Favorites
     url(r'^favorites/$', views.favorite_list, name='fav'),

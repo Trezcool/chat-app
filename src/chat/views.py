@@ -242,6 +242,21 @@ def accept_friend_request(request, pk):
 
 
 @login_required
+def unfriend_friend(request, pk):
+    """
+    Unfriends a friend (Deletes both `Friend` instances from each user's friend list).
+    """
+    user = request.user
+    friend = get_object_or_404(Friend, pk=pk)
+    if friend.owner != user:
+        raise Http404('You have no relationship with this user.')
+    user_friend = Friend.objects.get(owner=friend.friend, friend=user)
+    friend.delete()
+    user_friend.delete()
+    return redirect('contacts')
+
+
+@login_required
 def leave_group(request, slug):
     """
     Leaves a group.
