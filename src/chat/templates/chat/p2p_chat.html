@@ -31,6 +31,9 @@
             <div style="padding: 1em">
                 <form id="chatform">
                     <div id="chat">
+                    {% if msg_count < max_count %}
+                        <p class="text-center"><a href="{% url 'p2p_chat' receiver.pk %}?msg_count={{ msg_count }}"><span><i class="fa fa-refresh"></i></span> </a></p>
+                    {% endif %}
                     {% for message in chat_messages %}
                         <div class="card clearfix {% if message.sender_id == request.user.pk %}pull-right user-message {% endif %}">
                             <div class="card-block">

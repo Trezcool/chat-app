@@ -71,11 +71,13 @@ class P2pChatView(generic.DetailView, LoginRequiredMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         p2p_list = [self.request.user.pk, self.object.pk]
-        msg_count = kwargs.get('msg_count', 0) + 10  # TODO: Implement `Loading of more messages`
-        chat_messages = reversed(ChatMessage.objects.filter(sender_id__in=p2p_list,
-                                                            receiver_id__in=p2p_list).order_by('-created')[:msg_count])
+        msg_count = int(self.request.GET.get('msg_count', 0)) + 10  # Load more messages
+        chat_messages = ChatMessage.objects.filter(sender_id__in=p2p_list, receiver_id__in=p2p_list).order_by('-created')
+        max_count = chat_messages.count()
+        chat_messages = reversed(chat_messages[:msg_count])
         context.update({
             'msg_count': msg_count,
+            'max_count': max_count,
             'chat_messages': chat_messages,
         })
         return context
@@ -97,13 +99,18 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
         return group
 
     def get_context_data(self, **kwargs):
+        is_chat = kwargs.pop('is_chat', True)
         context = super().get_context_data(**kwargs)
-        msg_count = kwargs.get('msg_count', 0) + 10  # TODO: Implement `Loading of more messages`
-        chat_messages = reversed(self.object.messages.order_by('-created')[:msg_count])
-        context.update({
-            'msg_count': msg_count,
-            'chat_messages': chat_messages,
-        })
+        if is_chat:
+            msg_count = int(self.request.GET.get('msg_count', 0)) + 1  # Load more messages
+            chat_messages = self.object.messages.order_by('-created')
+            max_count = chat_messages.count()
+            chat_messages = reversed(chat_messages[:msg_count])
+            context.update({
+                'msg_count': msg_count,
+                'max_count': max_count,
+                'chat_messages': chat_messages,
+            })
         return context
 
 
@@ -136,6 +143,7 @@ class GroupMemberListView(GroupChatView):
     template_name = 'chat/group_members.html'
 
     def get_context_data(self, **kwargs):
+        kwargs['is_chat'] = False
         context = super().get_context_data(**kwargs)
         members_ids = list(self.object.members.all().values_list('friend', flat=True))
         members_ids.append(self.object.admin_id)
