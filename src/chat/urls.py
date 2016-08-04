@@ -22,6 +22,7 @@ urlpatterns = [
 
     # Groups.
     url(r'^groups/$', views.group_list, name='groups'),
+    url(r'^groups/create/$', views.group_create, name='create_group'),
     url(r'^groups/(?P<slug>[\w-]{,50})/members/$', views.group_member_list, name='group_members'),
     url(r'^groups/(?P<slug>[\w-]{,50})/leave/$', views.leave_group, name='leave_group'),
 

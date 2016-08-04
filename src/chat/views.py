@@ -8,7 +8,9 @@ from django.db.models import Q
 from django.db.transaction import atomic
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.views import generic
+from chat.forms import ChatGroupForm
 
 from chat.models import ChatGroup, ChatMessage, Friend, FriendRequest, Membership
 
@@ -137,6 +139,21 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
         user = self.request.user
         friend_to = user.friend_to.all().values_list('id', flat=True)
         return ChatGroup.objects.filter(Q(admin=user) | Q(members__in=friend_to)).distinct()
+
+
+class GroupCreateView(generic.FormView, LoginRequiredMixin):
+    form_class = ChatGroupForm
+    template_name = 'chat/create_group.html'
+    success_url = reverse_lazy('groups')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
 class GroupMemberListView(GroupChatView):
@@ -287,6 +304,7 @@ group_chat = GroupChatView.as_view()
 contact_list = ContactListView.as_view()
 favorite_list = FavoriteListView.as_view()
 group_list = GroupListView.as_view()
+group_create = GroupCreateView.as_view()
 group_member_list = GroupMemberListView.as_view()
 potential_friend_list = PotentialFriendListView.as_view()
 friend_request_list = FriendRequestListView.as_view()
