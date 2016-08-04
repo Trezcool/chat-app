@@ -45,6 +45,9 @@
                                 <a href="{% url 'send_request' member.pk %}?redirect_to=group_members&pk={{ group.label }}"><span><i class="fa fa-user-plus"></i></span> </a>
                             {% endif %}
                         {% endif %}
+                        {% if member == request.user %}
+                            <a href="{% url 'leave_group' group.label %}" title="Leave"><span><i class="fa fa-remove text-danger"></i></span> </a>
+                        {% endif %}
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
             {% empty %}

@@ -2,7 +2,7 @@ from django import forms
 from chat.models import ChatGroup, Friend, Membership
 
 
-class ChatGroupForm(forms.ModelForm):
+class CreateGroupForm(forms.ModelForm):
     members = forms.ModelMultipleChoiceField(queryset=Friend.objects.none(), required=False)
 
     class Meta:
