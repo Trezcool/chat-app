@@ -141,7 +141,7 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
         return ChatGroup.objects.filter(Q(admin=user) | Q(members__in=friend_to)).distinct()
 
 
-class GroupCreateView(generic.FormView, LoginRequiredMixin):
+class GroupCreateView(generic.CreateView, LoginRequiredMixin):
     form_class = GroupCreateForm
     template_name = 'chat/create_group.html'
     success_url = reverse_lazy('groups')
@@ -151,9 +151,17 @@ class GroupCreateView(generic.FormView, LoginRequiredMixin):
         kwargs['user'] = self.request.user
         return kwargs
 
-    def form_valid(self, form):
-        form.save()
-        return super().form_valid(form)
+
+class GroupUpdateView(GroupChatView, generic.UpdateView):
+    Model = ChatGroup
+    fields = ['name', 'label']
+    template_name = 'chat/update_group.html'
+    success_url = reverse_lazy('groups')
+
+
+class GroupDeleteView(GroupChatView, generic.DeleteView):
+    template_name = 'chat/group_confirm_delete.html'
+    success_url = reverse_lazy('groups')
 
 
 class GroupMemberListView(GroupChatView):
@@ -172,11 +180,6 @@ class GroupMemberListView(GroupChatView):
             'common_friends_ids': common_friends_ids,
         })
         return context
-
-
-class GroupDeleteView(GroupChatView, generic.edit.DeleteView):
-    template_name = 'chat/group_confirm_delete.html'
-    success_url = reverse_lazy('groups')
 
 
 class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
@@ -287,7 +290,8 @@ def leave_group(request, slug):
     group = get_object_or_404(ChatGroup, label=slug)
     if user == group.admin:
         try:
-            next_admin = Membership.objects.exclude(group=group, member__friend=user).earliest('created').member.friend
+            next_admin = (Membership.objects.filter(group=group).exclude(member__friend=user)
+                                            .earliest('created').member.friend)
             group.admin = next_admin
             group.save()
         except Membership.DoesNotExist:  # There's no members but the admin, therefore delete group.
@@ -310,7 +314,8 @@ contact_list = ContactListView.as_view()
 favorite_list = FavoriteListView.as_view()
 group_list = GroupListView.as_view()
 group_create = GroupCreateView.as_view()
-group_member_list = GroupMemberListView.as_view()
+group_update = GroupUpdateView.as_view()
 group_delete = GroupDeleteView.as_view()
+group_member_list = GroupMemberListView.as_view()
 potential_friend_list = PotentialFriendListView.as_view()
 friend_request_list = FriendRequestListView.as_view()

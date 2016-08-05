@@ -21,3 +21,9 @@ class GroupCreateForm(forms.ModelForm):
         for member in self.cleaned_data.get('members'):
             Membership.objects.create(member=member, group=instance)
         return instance
+
+
+# class GroupUpdateForm(forms.ModelForm):
+#     class Meta:
+#         model = ChatGroup
+#         fields = ['name', 'label']

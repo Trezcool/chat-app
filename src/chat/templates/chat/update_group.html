@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %}Update Group | {{ block.super }}{% endblock %}
+
+{% block topnav %}
+    {% include "includes/_topnav.html" with tab='groups' %}
+{% endblock topnav %}
+
+{% block content %}
+    <div class="container center">
+        <form action="" method="post">{% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Update Group" />
+        </form>
+    </div>
+{% endblock %}
