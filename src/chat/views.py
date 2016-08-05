@@ -104,7 +104,7 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
         is_chat = kwargs.pop('is_chat', True)
         context = super().get_context_data(**kwargs)
         if is_chat:
-            msg_count = int(self.request.GET.get('msg_count', 0)) + 1  # Load more messages
+            msg_count = int(self.request.GET.get('msg_count', 0)) + 10  # Load more messages
             chat_messages = self.object.messages.order_by('-created')
             max_count = chat_messages.count()
             chat_messages = reversed(chat_messages[:msg_count])

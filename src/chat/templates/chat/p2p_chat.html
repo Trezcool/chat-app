@@ -34,13 +34,17 @@
                     {% if msg_count < max_count %}
                         <p class="text-center"><a href="{% url 'p2p_chat' receiver.pk %}?msg_count={{ msg_count }}"><span><i class="fa fa-refresh"></i></span> </a></p>
                     {% endif %}
-                    {% for message in chat_messages %}
-                        <div class="card clearfix {% if message.sender_id == request.user.pk %}pull-right user-message {% endif %}">
-                            <div class="card-block">
-                                <p>{{ message.message }}</p>
-                                <p><small class="text-muted">{{ message.formatted_timestamp }}</small></p>
+                    {% regroup chat_messages|dictsort:"timestamp_date" by timestamp_date as grouped %}
+                    {% for group in grouped %}
+                        <div class="date-grouper clearfix">{{ group.grouper|date:'D, j M' }}</div>
+                        {% for message in group.list %}
+                            <div class="card clearfix {% if message.sender_id == request.user.pk %}pull-right user-message {% endif %}">
+                                <div class="card-block">
+                                    <p>{{ message.message }}</p>
+                                    <p><small class="text-muted">{{ message.formatted_timestamp }}</small></p>
+                                </div>
                             </div>
-                        </div>
+                        {% endfor %}
                     {% endfor %}
                     </div>
 

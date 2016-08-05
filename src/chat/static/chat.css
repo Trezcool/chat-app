@@ -40,7 +40,7 @@ p.deck a {
     margin-bottom: .25rem;
 }
 .user-message {
-    background-color: rgba(61, 164, 199, 0.36);
+    background-color: rgba(8, 226, 0, 0.27);
     overflow: auto;
 }
 .clearfix {
@@ -48,4 +48,12 @@ p.deck a {
 }
 .fav {
     color: rgb(238, 176, 8);
+}
+.date-grouper {
+    text-align: center;
+    max-width: 8%;
+    margin:0 auto;
+    background-color: rgba(61, 164, 199, 0.36);
+    border-radius: 1rem;
+    border: 1px solid rgba(0,0,0,.125);
 }

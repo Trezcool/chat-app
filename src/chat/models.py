@@ -78,7 +78,11 @@ class ChatMessage(TimeStampedModel):
 
     @property
     def formatted_timestamp(self):
-        return self.created.strftime('%b %-d %-I:%M %p')
+        return self.created.strftime('%-I:%M %p')
+
+    @property
+    def timestamp_date(self):
+        return self.created.date()
 
     def as_dict(self):
         return {
