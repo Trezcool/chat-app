@@ -55,7 +55,8 @@ class ChatConsumer(JsonWebsocketConsumer):
         checks that he is a member of this group if it's a group chat.
         """
         user = message.user
-        if not user.is_authenticated():
+        if not user.is_authenticated:
+            log.debug('ws sender not authenticated')
             return
         if self.receiver:  # Peer-to-peer chat
             if user.pk == self.receiver.pk:

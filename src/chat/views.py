@@ -12,7 +12,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 
 from chat.models import ChatGroup, ChatMessage, Friend, FriendRequest, Membership
-from chat.forms import CreateGroupForm
+from chat.forms import GroupCreateForm
 
 
 class HomeView(generic.TemplateView, LoginRequiredMixin):
@@ -142,7 +142,7 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
 
 
 class GroupCreateView(generic.FormView, LoginRequiredMixin):
-    form_class = CreateGroupForm
+    form_class = GroupCreateForm
     template_name = 'chat/create_group.html'
     success_url = reverse_lazy('groups')
 

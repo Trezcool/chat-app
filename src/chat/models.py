@@ -23,7 +23,7 @@ class FriendRequest(TimeStampedModel):  # TODO: Create 2 `Friend` instances upon
 
 class Friend(TimeStampedModel):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friends')  # owner's friend list.
-    friend = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friend_to')  # others' friend lists.
+    friend = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='friend_to')
     is_favorite = models.BooleanField(default=False)
 
     class Manager(models.Manager):
