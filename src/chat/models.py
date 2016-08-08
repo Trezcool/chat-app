@@ -1,6 +1,29 @@
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser, UserManager as DjangoUserManager
 from django.db import models
+
 from model_utils.models import TimeStampedModel
+
+
+def user_profile_pic_directory_path(instance, filename):
+    return 'profile_photos/user_{0}/{1}'.format(instance.id, filename)
+
+
+class UserManager(DjangoUserManager):
+    @classmethod
+    def normalize_email(cls, email):
+        return DjangoUserManager.normalize_email(email).lower()
+
+    def get_by_natural_key(self, username):
+        # noinspection PyUnresolvedReferences
+        return self.get(**{'{}__iexact'.format(self.model.USERNAME_FIELD): username})
+
+
+class User(AbstractUser, TimeStampedModel):
+    status = models.TextField(max_length=140, blank=True, null=True)
+    profile_photo = models.ImageField(upload_to=user_profile_pic_directory_path, blank=True, null=True)
+
+    objects = UserManager()
 
 
 class FriendRequest(TimeStampedModel):  # TODO: Create 2 `Friend` instances upon approval.

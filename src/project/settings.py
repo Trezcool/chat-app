@@ -26,6 +26,8 @@ MIDDLEWARE_CLASSES = [
 
 ROOT_URLCONF = 'chat.urls'
 
+AUTH_USER_MODEL = 'chat.User'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

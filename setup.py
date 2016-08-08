@@ -11,6 +11,7 @@ setup(
         'Django ~=1.10.0',
         'django-model-utils ~=2.5.0',
         'channels',
+        'Pillow',
     ],
     package_dir={'': 'src'},
     packages=find_packages('src'),
