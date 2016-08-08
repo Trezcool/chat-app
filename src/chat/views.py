@@ -2,7 +2,7 @@ from itertools import chain
 from operator import attrgetter
 
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.db.transaction import atomic
@@ -12,10 +12,22 @@ from django.urls import reverse_lazy
 from django.views import generic
 
 from chat.models import ChatGroup, ChatMessage, Friend, FriendRequest, Membership
-from chat.forms import GroupCreateForm
 
 
-class HomeView(generic.TemplateView, LoginRequiredMixin):
+class GroupAdminRequiredMixin(UserPassesTestMixin):
+    """
+    Requires that the user be the group admin.
+    """
+    permission_denied_message = 'You do not have admin right to this group.'
+
+    def test_func(self):
+        self.raise_exception = True
+        label = self.kwargs.get(self.slug_url_kwarg)
+        group = get_object_or_404(ChatGroup, label=label)
+        return self.request.user == group.admin
+
+
+class HomeView(LoginRequiredMixin, generic.TemplateView):
     template_name = 'chat/home.html'
 
     def get(self, request, *args, **kwargs):
@@ -24,7 +36,7 @@ class HomeView(generic.TemplateView, LoginRequiredMixin):
         return super().get(request, *args, **kwargs)
 
 
-class ChatListView(generic.ListView, LoginRequiredMixin):
+class ChatListView(LoginRequiredMixin, generic.ListView):
     model = ChatMessage
     template_name = 'chat/chats.html'
 
@@ -54,7 +66,7 @@ class ChatListView(generic.ListView, LoginRequiredMixin):
         return latest_messages
 
 
-class P2pChatView(generic.DetailView, LoginRequiredMixin):
+class P2pChatView(LoginRequiredMixin, generic.DetailView):
     model = User
     context_object_name = 'receiver'
     template_name = 'chat/p2p_chat.html'
@@ -85,10 +97,11 @@ class P2pChatView(generic.DetailView, LoginRequiredMixin):
         return context
 
 
-class GroupChatView(generic.DetailView, LoginRequiredMixin):
+class GroupChatView(LoginRequiredMixin, generic.DetailView):
     model = ChatGroup
     context_object_name = 'group'
     template_name = 'chat/group_chat.html'
+    is_chat = True
 
     def get_object(self, queryset=None):
         user = self.request.user
@@ -101,9 +114,8 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
         return group
 
     def get_context_data(self, **kwargs):
-        is_chat = kwargs.pop('is_chat', True)
         context = super().get_context_data(**kwargs)
-        if is_chat:
+        if self.is_chat:
             msg_count = int(self.request.GET.get('msg_count', 0)) + 10  # Load more messages
             chat_messages = self.object.messages.order_by('-created')
             max_count = chat_messages.count()
@@ -116,7 +128,7 @@ class GroupChatView(generic.DetailView, LoginRequiredMixin):
         return context
 
 
-class ContactListView(generic.ListView, LoginRequiredMixin):
+class ContactListView(LoginRequiredMixin, generic.ListView):
     model = Friend
     template_name = 'chat/contacts.html'
 
@@ -131,7 +143,7 @@ class FavoriteListView(ContactListView):
         return self.request.user.friends.favorites().select_related('friend')
 
 
-class GroupListView(generic.ListView, LoginRequiredMixin):
+class GroupListView(LoginRequiredMixin, generic.ListView):
     model = ChatGroup
     template_name = 'chat/groups.html'
 
@@ -141,40 +153,44 @@ class GroupListView(generic.ListView, LoginRequiredMixin):
         return ChatGroup.objects.filter(Q(admin=user) | Q(members__in=friend_to)).distinct()
 
 
-class GroupCreateView(generic.CreateView, LoginRequiredMixin):
-    form_class = GroupCreateForm
+class GroupCreateView(LoginRequiredMixin, generic.CreateView):
+    model = ChatGroup
+    fields = ['name', 'label']
     template_name = 'chat/create_group.html'
     success_url = reverse_lazy('groups')
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+    def form_valid(self, form):
+        form.instance = form.save(commit=False)
+        form.instance.admin = self.request.user
+        return super().form_valid(form)
 
 
-class GroupUpdateView(GroupChatView, generic.UpdateView):
-    Model = ChatGroup
+class GroupUpdateView(GroupAdminRequiredMixin, GroupChatView, generic.UpdateView):
     fields = ['name', 'label']
     template_name = 'chat/update_group.html'
     success_url = reverse_lazy('groups')
+    is_chat = False
 
 
-class GroupDeleteView(GroupChatView, generic.DeleteView):
+class GroupDeleteView(GroupAdminRequiredMixin, GroupChatView, generic.DeleteView):
     template_name = 'chat/group_confirm_delete.html'
     success_url = reverse_lazy('groups')
+    is_chat = False
 
 
 class GroupMemberListView(GroupChatView):
     template_name = 'chat/group_members.html'
+    is_chat = False
 
     def get_context_data(self, **kwargs):
-        kwargs['is_chat'] = False
         context = super().get_context_data(**kwargs)
         members_ids = list(self.object.members.all().values_list('friend', flat=True))
         members_ids.append(self.object.admin_id)
         members = User.objects.filter(pk__in=members_ids)
         user_friends_ids = self.request.user.friends.all().values_list('friend', flat=True)
-        common_friends_ids = self.object.members.filter(friend_id__in=user_friends_ids).values_list('friend', flat=True)
+        common_friends_ids = list(self.object.members.filter(friend_id__in=user_friends_ids).values_list('friend', flat=True))
+        if self.object.admin_id in user_friends_ids:
+            common_friends_ids.append(self.object.admin_id)
         context.update({
             'members': members,
             'common_friends_ids': common_friends_ids,
@@ -182,7 +198,20 @@ class GroupMemberListView(GroupChatView):
         return context
 
 
-class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
+class GroupMembersAddView(GroupUpdateView):
+    fields = ['members']
+    template_name = 'chat/add_group_members.html'
+    is_chat = False
+
+    def form_valid(self, form):
+        group = form.save(commit=False)
+        for member in form.cleaned_data.get('members'):
+            Membership.objects.get_or_create(member=member, group=group)
+        group.save()
+        return redirect('group_members', group.label)
+
+
+class PotentialFriendListView(LoginRequiredMixin, generic.ListView):
     model = User
     template_name = 'chat/find_friends.html'
 
@@ -193,7 +222,7 @@ class PotentialFriendListView(generic.ListView, LoginRequiredMixin):
         return User.objects.exclude(pk__in=friends)
 
 
-class FriendRequestListView(generic.ListView, LoginRequiredMixin):
+class FriendRequestListView(LoginRequiredMixin, generic.ListView):
     model = FriendRequest
     template_name = 'chat/friend_requests.html'
 
@@ -317,5 +346,6 @@ group_create = GroupCreateView.as_view()
 group_update = GroupUpdateView.as_view()
 group_delete = GroupDeleteView.as_view()
 group_member_list = GroupMemberListView.as_view()
+group_members_add = GroupMembersAddView.as_view()
 potential_friend_list = PotentialFriendListView.as_view()
 friend_request_list = FriendRequestListView.as_view()

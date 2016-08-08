@@ -55,5 +55,8 @@
             {% endfor %}
             </div>
         </div>
+        {% if request.user == group.admin %}
+            <p class="text-center"><a href="{% url 'add_group_members' group.label %}" class="btn btn-primary">Add Members</a></p>
+        {% endif %}
     </div>
 {% endblock %}
