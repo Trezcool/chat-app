@@ -42,7 +42,7 @@ class ChatListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user = self.request.user
-        friend_to = user.friend_to.all().values_list('id', flat=True)
+        friend_to = user.friend_to.all().values_list('friend', flat=True)
         groups = (ChatGroup.objects.filter(Q(admin=user) | Q(members__in=friend_to))
                                    .distinct().values_list('id', flat=True))
         chat_messages = ChatMessage.objects.filter(Q(sender=user) | Q(receiver=user) | Q(group_id__in=groups))
@@ -101,7 +101,6 @@ class GroupChatView(LoginRequiredMixin, generic.DetailView):
     model = ChatGroup
     context_object_name = 'group'
     template_name = 'chat/group_chat.html'
-    is_chat = True
 
     def get_object(self, queryset=None):
         user = self.request.user
@@ -115,7 +114,7 @@ class GroupChatView(LoginRequiredMixin, generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.is_chat:
+        if getattr(self, 'is_chat', True):
             msg_count = int(self.request.GET.get('msg_count', 0)) + 10  # Load more messages
             chat_messages = self.object.messages.order_by('-created')
             max_count = chat_messages.count()
@@ -149,7 +148,7 @@ class GroupListView(LoginRequiredMixin, generic.ListView):
 
     def get_queryset(self):
         user = self.request.user
-        friend_to = user.friend_to.all().values_list('id', flat=True)
+        friend_to = user.friend_to.all().values_list('friend', flat=True)
         return ChatGroup.objects.filter(Q(admin=user) | Q(members__in=friend_to)).distinct()
 
 
@@ -184,11 +183,11 @@ class GroupMemberListView(GroupChatView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        members_ids = list(self.object.members.all().values_list('friend', flat=True))
+        members_ids = list(self.object.members.all().values_list('id', flat=True))
         members_ids.append(self.object.admin_id)
         members = User.objects.filter(pk__in=members_ids)
         user_friends_ids = self.request.user.friends.all().values_list('friend', flat=True)
-        common_friends_ids = list(self.object.members.filter(friend_id__in=user_friends_ids).values_list('friend', flat=True))
+        common_friends_ids = list(self.object.members.filter(pk__in=user_friends_ids).values_list('id', flat=True))
         if self.object.admin_id in user_friends_ids:
             common_friends_ids.append(self.object.admin_id)
         context.update({
@@ -203,10 +202,20 @@ class GroupMembersAddView(GroupUpdateView):
     template_name = 'chat/add_group_members.html'
     is_chat = False
 
+    def get_form(self, form_class=None):
+        """
+        Only include the user's friends and exclude those who are already members of the group.
+        """
+        form = super().get_form(form_class=form_class)
+        friends_ids = self.request.user.friends.all().values_list('friend', flat=True)
+        members_ids = self.object.members.all().values_list('id', flat=True)
+        form.fields['members'].queryset = User.objects.filter(pk__in=friends_ids).exclude(pk__in=members_ids)
+        return form
+
     def form_valid(self, form):
         group = form.save(commit=False)
         for member in form.cleaned_data.get('members'):
-            Membership.objects.get_or_create(member=member, group=group)
+            Membership.objects.get_or_create(group=group, member=member)
         group.save()
         return redirect('group_members', group.label)
 
@@ -312,11 +321,13 @@ def unfriend_friend(request, pk):
 
 @login_required
 def remove_group_member(request, slug, pk):
+    """
+    Removes a member from a group.
+    """
     group = get_object_or_404(ChatGroup, label=slug)
     if request.user != group.admin:
         raise Http404('You do not have admin right to this group.')
-    member = get_object_or_404(User, pk=pk)
-    membership = get_object_or_404(Membership, group=group, member__friend=member)
+    membership = get_object_or_404(Membership, group=group, member_id=pk)
     membership.delete()
     return redirect('group_members', group.label)
 
@@ -330,8 +341,7 @@ def leave_group(request, slug):
     group = get_object_or_404(ChatGroup, label=slug)
     if user == group.admin:
         try:
-            next_admin = (Membership.objects.filter(group=group).exclude(member__friend=user)
-                                            .earliest('created').member.friend)
+            next_admin = Membership.objects.filter(group=group).exclude(member=user).earliest('created').member
             group.admin = next_admin
             group.save()
         except Membership.DoesNotExist:  # There's no members but the admin, therefore delete group.
@@ -340,7 +350,7 @@ def leave_group(request, slug):
     elif not Membership.objects.is_member(group, user):  # Check that user is a member of this group.
         raise Http404('You do not belong to this group.')
     try:
-        Membership.objects.get(group=group, member__friend=user).delete()
+        Membership.objects.get(group=group, member=user).delete()
     except Membership.DoesNotExist:  # user was original admin & not a member.
         pass
     return redirect('groups')

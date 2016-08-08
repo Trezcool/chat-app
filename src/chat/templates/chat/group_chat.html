@@ -35,9 +35,9 @@
                         <p class="text-center"><a href="{% url 'group_chat' group.label %}?msg_count={{ msg_count }}"><span><i class="fa fa-refresh"></i></span> </a></p>
                     {% endif %}
                     {% regroup chat_messages|dictsort:"timestamp_date" by timestamp_date as grouped %}
-                    {% for group in grouped %}
-                        <div class="date-grouper clearfix">{{ group.grouper|date:'D, j M' }}</div>
-                        {% for message in group.list %}
+                    {% for items in grouped %}
+                        <div class="date-grouper clearfix">{{ items.grouper|date:'D, j M' }}</div>
+                        {% for message in items.list %}
                             <div class="card clearfix {% if message.sender_id == request.user.pk %}pull-right user-message {% endif %}">
                                 <div class="card-block">
                                     {% if message.sender_id != request.user.pk %}
