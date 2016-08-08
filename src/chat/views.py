@@ -311,6 +311,17 @@ def unfriend_friend(request, pk):
 
 
 @login_required
+def remove_group_member(request, slug, pk):
+    group = get_object_or_404(ChatGroup, label=slug)
+    if request.user != group.admin:
+        raise Http404('You do not have admin right to this group.')
+    member = get_object_or_404(User, pk=pk)
+    membership = get_object_or_404(Membership, group=group, member__friend=member)
+    membership.delete()
+    return redirect('group_members', group.label)
+
+
+@login_required
 def leave_group(request, slug):
     """
     Leaves a group.

@@ -47,6 +47,8 @@
                         {% endif %}
                         {% if member == request.user %}
                             <a href="{% url 'leave_group' group.label %}" title="Leave"><span><i class="fa fa-remove text-danger"></i></span> </a>
+                        {% elif request.user == group.admin %}
+                            <a href="{% url 'remove_group_member' group.label member.pk %}" title="Remove"><span><i class="fa fa-remove text-danger"></i></span> </a>
                         {% endif %}
                     </div>
                 </div>{% if not forloop.last %}<hr style="margin: 1em">{% endif %}
